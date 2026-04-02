@@ -5,6 +5,7 @@ import { ElementsModule } from './elements/elements.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Element } from './elements/entities/element.entity';
 import { LevelsModule } from './levels/levels.module';
+import { TopicsModule } from './topics/topics.module';
 
 @Module({
   imports: [
@@ -21,7 +22,9 @@ import { LevelsModule } from './levels/levels.module';
 
     ElementsModule,
 
-    LevelsModule
+    LevelsModule,
+
+    TopicsModule
   ],
   controllers: [AppController],
   providers: [AppService],
