@@ -7,4 +7,7 @@ export class Topic {
 
     @Column()
     title: string;
+
+    @Column()
+    subtitle: string;
 }
