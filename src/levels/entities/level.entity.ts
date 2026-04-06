@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Topic } from "../../topics/entities/topic.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Level {
@@ -19,4 +20,7 @@ export class Level {
 
     @Column({ default: 0 })
     lessonNumber: number;
+
+    @OneToMany(() => Topic, (topic) => topic.level)
+    topics: Topic[];
 }

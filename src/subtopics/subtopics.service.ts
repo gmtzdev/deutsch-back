@@ -1,19 +1,51 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSubtopicDto } from './dto/create-subtopic.dto';
 import { UpdateSubtopicDto } from './dto/update-subtopic.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Subtopic } from './entities/subtopic.entity';
+import { elementTypes } from 'src/elements/types/types';
+import { ElementsService } from 'src/elements/elements.service';
 
 @Injectable()
 export class SubtopicsService {
+  constructor(
+    @InjectRepository(Subtopic)
+    private readonly subtopicRepository: Repository<Subtopic>,
+    private readonly elementsService: ElementsService,
+  ) { }
+
+
   create(createSubtopicDto: CreateSubtopicDto) {
-    return 'This action adds a new subtopic';
+    return this.subtopicRepository.save(
+      this.subtopicRepository.create(createSubtopicDto),
+    );
   }
 
   findAll() {
-    return `This action returns all subtopics`;
+    return this.subtopicRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} subtopic`;
+  async findOne(id: number) {
+    const subtopic = await this.subtopicRepository.findOne({ where: { id }, relations: ['lesson', 'lesson.elements'] });
+
+    console.log(subtopic);
+
+    let elements = [];
+    if (subtopic.lesson) {
+      for (const type of elementTypes) {
+        console.log(type);
+        const el = await this.elementsService.getElementsByLessonId(subtopic.lesson.id, type);
+        elements = elements.concat(el);
+      }
+    }
+
+    console.log(elements);
+
+
+
+    subtopic.lesson.elements = elements;
+    return subtopic;
   }
 
   update(id: number, updateSubtopicDto: UpdateSubtopicDto) {
