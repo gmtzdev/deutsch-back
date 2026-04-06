@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Subtopic } from './entities/subtopic.entity';
 import { elementTypes } from 'src/elements/types/types';
 import { ElementsService } from 'src/elements/elements.service';
+import { LessonsService } from 'src/lessons/lessons.service';
 
 @Injectable()
 export class SubtopicsService {
@@ -13,13 +14,17 @@ export class SubtopicsService {
     @InjectRepository(Subtopic)
     private readonly subtopicRepository: Repository<Subtopic>,
     private readonly elementsService: ElementsService,
+    private readonly lessonService: LessonsService,
   ) { }
 
 
-  create(createSubtopicDto: CreateSubtopicDto) {
-    return this.subtopicRepository.save(
-      this.subtopicRepository.create(createSubtopicDto),
-    );
+  async create(createSubtopicDto: CreateSubtopicDto) {
+    const subtopic = await this.subtopicRepository.save(this.subtopicRepository.create(createSubtopicDto));
+    this.lessonService.create({
+      type: '00000',
+      subtopic: subtopic,
+    })
+    return subtopic;
   }
 
   findAll() {

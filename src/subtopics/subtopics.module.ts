@@ -4,6 +4,7 @@ import { SubtopicsController } from './subtopics.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Subtopic } from './entities/subtopic.entity';
 import { ElementsModule } from 'src/elements/elements.module';
+import { LessonsModule } from 'src/lessons/lessons.module';
 
 @Module({
   controllers: [SubtopicsController],
@@ -11,6 +12,7 @@ import { ElementsModule } from 'src/elements/elements.module';
   imports: [
     TypeOrmModule.forFeature([Subtopic]),
     ElementsModule,
+    LessonsModule
   ]
 })
 export class SubtopicsModule { }
