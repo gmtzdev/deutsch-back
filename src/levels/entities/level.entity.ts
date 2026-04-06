@@ -21,6 +21,9 @@ export class Level {
     @Column({ default: 0 })
     lessonNumber: number;
 
+    @Column({ nullable: true })
+    color: string;
+
     @OneToMany(() => Topic, (topic) => topic.level)
     topics: Topic[];
 }

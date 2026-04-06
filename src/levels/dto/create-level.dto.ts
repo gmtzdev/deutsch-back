@@ -13,6 +13,9 @@ export class CreateLevelDto {
     @ApiProperty({ example: 'A1.1' })
     tag: string;
 
+    @ApiProperty({ example: '#22c55e' })
+    color: string;
+
     @ApiProperty({ example: 10 })
     lessonNumber: number;
 }
