@@ -34,20 +34,13 @@ export class SubtopicsService {
   async findOne(id: number) {
     const subtopic = await this.subtopicRepository.findOne({ where: { id }, relations: ['lesson', 'lesson.elements'] });
 
-    console.log(subtopic);
-
     let elements = [];
     if (subtopic.lesson) {
       for (const type of elementTypes) {
-        console.log(type);
         const el = await this.elementsService.getElementsByLessonId(subtopic.lesson.id, type);
         elements = elements.concat(el);
       }
     }
-
-    console.log(elements);
-
-
 
     subtopic.lesson.elements = elements;
     return subtopic;

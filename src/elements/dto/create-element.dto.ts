@@ -3,6 +3,8 @@ import { Lesson } from 'src/lessons/entities/lesson.entity';
 import { ElementType } from '../types/types';
 
 export class CreateElementDto {
+    id?: number;
+
     @ApiPropertyOptional({ example: 'Das ist ein Haus.' })
     text?: string;
 
@@ -19,4 +21,6 @@ export class CreateElementDto {
         }
     })
     lesson: Lesson;
+
+    delete: boolean;
 }
