@@ -12,6 +12,7 @@ import { CreateSubtitleDto } from './dto/subtitle/create-title.dto';
 import { CreateUnorderedListDto } from './dto/unorderedlist/create-title.dto';
 import { UnorderedList } from './entities/unorderedlist';
 import { ListItem } from './entities/listitem.entity';
+import { Tag } from './entities/tag.entity';
 
 @Injectable()
 export class ElementsService {
@@ -26,6 +27,8 @@ export class ElementsService {
     private readonly unorderedListRepository: Repository<UnorderedList>,
     @InjectRepository(ListItem)
     private readonly listItemRepository: Repository<ListItem>,
+    @InjectRepository(Tag)
+    private readonly tagRepository: Repository<Tag>,
   ) { }
 
 
@@ -34,15 +37,10 @@ export class ElementsService {
       elementDto.lesson = createBodyLessonDto.lesson;
 
       switch (elementDto.type) {
-        case 'title':
-          return this.handleTitle(elementDto as CreateTitleDto);
-
-        case 'subtitle':
-          return this.handleSubtitle(elementDto as CreateSubtitleDto);
-
-        case 'unorderedList':
-          return this.handleUnorderedList(elementDto as CreateUnorderedListDto);
-
+        case 'title': return this.handleTitle(elementDto as CreateTitleDto);
+        case 'subtitle': return this.handleSubtitle(elementDto as CreateSubtitleDto);
+        case 'unorderedList': return this.handleUnorderedList(elementDto as CreateUnorderedListDto);
+        case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default:
           return this.elementRepository.save(
             this.elementRepository.create(elementDto as CreateElementDto),
@@ -80,6 +78,8 @@ export class ElementsService {
         return this.subtitleRepository.find({ where: { lesson: { id: lessonId } } });
       case 'unorderedList':
         return this.unorderedListRepository.find({ where: { lesson: { id: lessonId } }, relations: ['list'] });
+      case 'tag':
+        return this.tagRepository.find({ where: { lesson: { id: lessonId } } });
       default:
         return this.elementRepository.find({ where: { lesson: { id: lessonId } } });
     }
@@ -230,4 +230,27 @@ export class ElementsService {
     return ul;
   }
 
+  private async handleTag(tagDto: CreateElementDto) {
+    // Verify if the tag should be deleted
+    if (tagDto.delete) {
+      await this.tagRepository.delete({ id: tagDto.id });
+      return null;
+    }
+
+    // If the tag has an ID, it means we are updating an existing tag
+    if (tagDto.id > 0) {
+      const existingTag = await this.tagRepository.findOneBy({ id: tagDto.id }) as Tag;
+      const element = tagDto as CreateElementDto;
+      // Update the existing tag with new data
+      existingTag.text = element.text;
+      existingTag.style = element.style;
+      return this.tagRepository.save(existingTag);
+    }
+
+    // If the tag does not have an ID, we are creating a new tag
+    delete tagDto.id;
+    return this.tagRepository.save(
+      this.tagRepository.create(tagDto as CreateElementDto),
+    );
+  }
 }

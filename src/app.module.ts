@@ -16,6 +16,7 @@ import { Subtopic } from './subtopics/entities/subtopic.entity';
 import { Lesson } from './lessons/entities/lesson.entity';
 import { ListItem } from './elements/entities/listitem.entity';
 import { UnorderedList } from './elements/entities/unorderedlist';
+import { Tag } from './elements/entities/tag.entity';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UnorderedList } from './elements/entities/unorderedlist';
         Subtitle,
         UnorderedList,
         ListItem,
+        Tag
       ],
       synchronize: true,
     }),
