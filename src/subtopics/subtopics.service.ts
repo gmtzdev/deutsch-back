@@ -32,13 +32,14 @@ export class SubtopicsService {
   }
 
   async findOne(id: number) {
-    const subtopic = await this.subtopicRepository.findOne({ where: { id }, relations: ['lesson', 'lesson.elements'] });
+    const subtopic = await this.subtopicRepository.findOne({ where: { id }, relations: ['lesson'] });
 
     let elements = [];
     if (subtopic.lesson) {
       for (const type of elementTypes) {
         const el = await this.elementsService.getElementsByLessonId(subtopic.lesson.id, type);
-        elements = elements.concat(el);
+        if (el != null)
+          elements = elements.concat(el);
       }
     }
 
@@ -47,10 +48,11 @@ export class SubtopicsService {
   }
 
   update(id: number, updateSubtopicDto: UpdateSubtopicDto) {
-    return `This action updates a #${id} subtopic`;
+    const subtopic = this.subtopicRepository.create({ id, ...updateSubtopicDto });
+    return this.subtopicRepository.save(subtopic);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} subtopic`;
+    return this.subtopicRepository.delete(id);
   }
 }

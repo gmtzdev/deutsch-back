@@ -69,10 +69,8 @@ export class ElementsService {
         case 'conjugation': return this.handleConjugation(elementDto as CreateConjugationDto);
         case 'quiz': return this.handleQuiz(elementDto as CreateQuizDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
-        default:
-          return this.elementRepository.save(
-            this.elementRepository.create(elementDto as CreateElementDto),
-          );
+        default: return this.handleElement(elementDto);
+
       }
     });
     return Promise.all(elements);
@@ -100,6 +98,8 @@ export class ElementsService {
 
   getElementsByLessonId(lessonId: number, type: string) {
     switch (type) {
+      case 'element':
+        return this.elementRepository.find({ where: { lesson: { id: lessonId } } });
       case 'title':
         return this.titleRepository.find({ where: { lesson: { id: lessonId } } });
       case 'subtitle':
@@ -115,11 +115,34 @@ export class ElementsService {
       case 'quiz':
         return this.quizRepository.find({ where: { lesson: { id: lessonId } }, relations: ['questions'] });
       default:
-        return this.elementRepository.find({ where: { lesson: { id: lessonId } } });
+        console.log(type);
+        return null;
     }
   }
 
 
+  private async handleElement(elementDto: CreateElementDto) {
+    // Verify if the element should be deleted
+    if (elementDto.delete) {
+      await this.elementRepository.delete({ id: elementDto.id });
+      return null;
+    }
+
+    // If the element has an ID, it means we are updating an existing element
+    if (elementDto.id > 0) {
+      const existingElement = await this.elementRepository.findOneBy({ id: elementDto.id }) as Element;
+      // Update the existing element with new data
+      existingElement.text = elementDto.text;
+      existingElement.style = elementDto.style;
+      return this.elementRepository.save(existingElement);
+    }
+
+    // If the element does not have an ID, we are creating a new element
+    delete elementDto.id;
+    return this.elementRepository.save(
+      this.elementRepository.create(elementDto),
+    );
+  }
 
 
   private async handleTitle(titleDto: CreateTitleDto) {
