@@ -8,11 +8,13 @@ import { Subtitle } from './entities/subtitle.entity';
 import { ListItem } from './entities/listitem.entity';
 import { UnorderedList } from './entities/unorderedlist';
 import { Tag } from './entities/tag.entity';
+import { Table } from './entities/table.entity';
+import { TableRow } from './entities/tablerow.entity';
 
 @Module({
   controllers: [ElementsController],
   providers: [ElementsService],
-  imports: [TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag
+  imports: [TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow
   ])],
   exports: [ElementsService],
 })

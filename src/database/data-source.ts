@@ -8,6 +8,8 @@ import { Lesson } from '../lessons/entities/lesson.entity';
 import { Element } from '../elements/entities/element.entity';
 import { Title } from '../elements/entities/title.entity';
 import { Subtitle } from '../elements/entities/subtitle.entity';
+import { Table } from '../elements/entities/table.entity';
+import { TableRow } from '../elements/entities/tablerow.entity';
 
 const dataSource = new DataSource({
     type: 'mysql',
@@ -16,7 +18,7 @@ const dataSource = new DataSource({
     username: 'lalo',
     password: 'laura',
     database: 'deutschapp',
-    entities: [Level, Topic, Subtopic, Lesson, Element, Title, Subtitle],
+    entities: [Level, Topic, Subtopic, Lesson, Element, Title, Subtitle, Table, TableRow],
 });
 
 dataSource.initialize().then(() => runSeeders(dataSource, {

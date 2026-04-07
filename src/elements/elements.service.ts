@@ -13,6 +13,9 @@ import { CreateUnorderedListDto } from './dto/unorderedlist/create-title.dto';
 import { UnorderedList } from './entities/unorderedlist';
 import { ListItem } from './entities/listitem.entity';
 import { Tag } from './entities/tag.entity';
+import { Table } from './entities/table.entity';
+import { TableRow } from './entities/tablerow.entity';
+import { CreateTableDto } from './dto/table/create-table.dto';
 
 @Injectable()
 export class ElementsService {
@@ -29,10 +32,15 @@ export class ElementsService {
     private readonly listItemRepository: Repository<ListItem>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(Table)
+    private readonly tableRepository: Repository<Table>,
+    @InjectRepository(TableRow)
+    private readonly tableRowRepository: Repository<TableRow>,
   ) { }
 
 
   createLesson(createBodyLessonDto: CreateBodyLessonDto) {
+    console.log(createBodyLessonDto);
     const elements = createBodyLessonDto.elements.map(async elementDto => {
       elementDto.lesson = createBodyLessonDto.lesson;
 
@@ -40,6 +48,7 @@ export class ElementsService {
         case 'title': return this.handleTitle(elementDto as CreateTitleDto);
         case 'subtitle': return this.handleSubtitle(elementDto as CreateSubtitleDto);
         case 'unorderedList': return this.handleUnorderedList(elementDto as CreateUnorderedListDto);
+        case 'table': return this.handleTable(elementDto as CreateTableDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default:
           return this.elementRepository.save(
@@ -80,6 +89,8 @@ export class ElementsService {
         return this.unorderedListRepository.find({ where: { lesson: { id: lessonId } }, relations: ['list'] });
       case 'tag':
         return this.tagRepository.find({ where: { lesson: { id: lessonId } } });
+      case 'table':
+        return this.tableRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
       default:
         return this.elementRepository.find({ where: { lesson: { id: lessonId } } });
     }
@@ -228,6 +239,52 @@ export class ElementsService {
       );
     });
     return ul;
+  }
+
+  private async handleTable(tableDto: CreateTableDto) {
+    // Verify if the table should be deleted
+    if (tableDto.delete) {
+      await this.tableRowRepository.delete({ table: { id: tableDto.id } });
+      await this.tableRepository.delete({ id: tableDto.id });
+      return null;
+    }
+
+    // If the table has an ID, we are updating an existing table
+    if (tableDto.id > 0) {
+      const existingTable = await this.tableRepository.findOne({ where: { id: tableDto.id }, relations: ['rows'] }) as Table;
+      existingTable.style = tableDto.style;
+      existingTable.baseStyle = tableDto.baseStyle;
+      existingTable.headers = tableDto.headers;
+      const updatedTable = await this.tableRepository.save(existingTable);
+
+      // Replace all rows
+      await this.tableRowRepository.delete({ table: { id: existingTable.id } });
+      for (const rowDto of tableDto.rows) {
+        const newRow = this.tableRowRepository.create(rowDto);
+        newRow.table = updatedTable;
+        delete newRow.id;
+        await this.tableRowRepository.save(newRow);
+      }
+
+      return updatedTable;
+    }
+
+    // Creating a new table
+    const dto = { ...tableDto } as any;
+    delete dto.id;
+    delete dto.rows;
+
+    const table = await this.tableRepository.save(
+      this.tableRepository.create(dto),
+    ) as unknown as Table;
+
+    for (const rowDto of tableDto.rows) {
+      const newRow = this.tableRowRepository.create(rowDto);
+      newRow.table = table;
+      await this.tableRowRepository.save(newRow);
+    }
+
+    return table;
   }
 
   private async handleTag(tagDto: CreateElementDto) {

@@ -17,6 +17,8 @@ import { Lesson } from './lessons/entities/lesson.entity';
 import { ListItem } from './elements/entities/listitem.entity';
 import { UnorderedList } from './elements/entities/unorderedlist';
 import { Tag } from './elements/entities/tag.entity';
+import { Table } from './elements/entities/table.entity';
+import { TableRow } from './elements/entities/tablerow.entity';
 
 @Module({
   imports: [
@@ -37,7 +39,9 @@ import { Tag } from './elements/entities/tag.entity';
         Subtitle,
         UnorderedList,
         ListItem,
-        Tag
+        Tag,
+        Table,
+        TableRow
       ],
       synchronize: true,
     }),
