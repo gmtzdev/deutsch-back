@@ -13,11 +13,13 @@ import { TableRow } from './entities/tablerow.entity';
 import { Conjugation } from './entities/conjugation.entity';
 import { VerbData } from './entities/verb-data.entity';
 import { ConjugationRow } from './entities/conjugation-row.entity';
+import { Quiz } from './entities/quiz.entity';
+import { QuizQuestion } from './entities/quiz-question.entity';
 
 @Module({
   controllers: [ElementsController],
   providers: [ElementsService],
-  imports: [TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow
+  imports: [TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion
   ])],
   exports: [ElementsService],
 })

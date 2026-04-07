@@ -20,6 +20,9 @@ import { Conjugation } from './entities/conjugation.entity';
 import { VerbData } from './entities/verb-data.entity';
 import { ConjugationRow } from './entities/conjugation-row.entity';
 import { CreateConjugationDto } from './dto/conjugation/create-conjugation.dto';
+import { Quiz } from './entities/quiz.entity';
+import { QuizQuestion } from './entities/quiz-question.entity';
+import { CreateQuizDto } from './dto/quiz/create-quiz.dto';
 
 @Injectable()
 export class ElementsService {
@@ -46,6 +49,10 @@ export class ElementsService {
     private readonly verbDataRepository: Repository<VerbData>,
     @InjectRepository(ConjugationRow)
     private readonly conjugationRowRepository: Repository<ConjugationRow>,
+    @InjectRepository(Quiz)
+    private readonly quizRepository: Repository<Quiz>,
+    @InjectRepository(QuizQuestion)
+    private readonly quizQuestionRepository: Repository<QuizQuestion>,
   ) { }
 
 
@@ -60,6 +67,7 @@ export class ElementsService {
         case 'unorderedList': return this.handleUnorderedList(elementDto as CreateUnorderedListDto);
         case 'table': return this.handleTable(elementDto as CreateTableDto);
         case 'conjugation': return this.handleConjugation(elementDto as CreateConjugationDto);
+        case 'quiz': return this.handleQuiz(elementDto as CreateQuizDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default:
           return this.elementRepository.save(
@@ -104,6 +112,8 @@ export class ElementsService {
         return this.tableRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
       case 'conjugation':
         return this.conjugationRepository.find({ where: { lesson: { id: lessonId } }, relations: ['verbs', 'verbs.rows'] });
+      case 'quiz':
+        return this.quizRepository.find({ where: { lesson: { id: lessonId } }, relations: ['questions'] });
       default:
         return this.elementRepository.find({ where: { lesson: { id: lessonId } } });
     }
@@ -381,5 +391,45 @@ export class ElementsService {
     }
 
     return conjugation;
+  }
+
+  private async handleQuiz(quizDto: CreateQuizDto) {
+    // Delete
+    if (quizDto.delete) {
+      await this.quizQuestionRepository.delete({ quiz: { id: quizDto.id } });
+      await this.quizRepository.delete({ id: quizDto.id });
+      return null;
+    }
+
+    // Update
+    if (quizDto.id > 0) {
+      const existing = await this.quizRepository.findOne({ where: { id: quizDto.id }, relations: ['questions'] }) as Quiz;
+      existing.style = quizDto.style;
+      const updatedQuiz = await this.quizRepository.save(existing);
+
+      await this.quizQuestionRepository.delete({ quiz: { id: existing.id } });
+      for (const qDto of quizDto.questions) {
+        const question = this.quizQuestionRepository.create({ ...qDto, quiz: updatedQuiz });
+        await this.quizQuestionRepository.save(question);
+      }
+
+      return updatedQuiz;
+    }
+
+    // Create
+    const dto = { ...quizDto } as any;
+    delete dto.id;
+    delete dto.questions;
+
+    const quiz = await this.quizRepository.save(
+      this.quizRepository.create(dto),
+    ) as unknown as Quiz;
+
+    for (const qDto of quizDto.questions) {
+      const question = this.quizQuestionRepository.create({ ...qDto, quiz });
+      await this.quizQuestionRepository.save(question);
+    }
+
+    return quiz;
   }
 }

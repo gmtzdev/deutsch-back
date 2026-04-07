@@ -22,6 +22,8 @@ import { TableRow } from './elements/entities/tablerow.entity';
 import { Conjugation } from './elements/entities/conjugation.entity';
 import { VerbData } from './elements/entities/verb-data.entity';
 import { ConjugationRow } from './elements/entities/conjugation-row.entity';
+import { Quiz } from './elements/entities/quiz.entity';
+import { QuizQuestion } from './elements/entities/quiz-question.entity';
 
 @Module({
   imports: [
@@ -47,7 +49,9 @@ import { ConjugationRow } from './elements/entities/conjugation-row.entity';
         TableRow,
         Conjugation,
         VerbData,
-        ConjugationRow
+        ConjugationRow,
+        Quiz,
+        QuizQuestion
       ],
       synchronize: true,
     }),
