@@ -15,12 +15,33 @@ import { VerbData } from './entities/verb-data.entity';
 import { ConjugationRow } from './entities/conjugation-row.entity';
 import { Quiz } from './entities/quiz.entity';
 import { QuizQuestion } from './entities/quiz-question.entity';
+import { ImageBlock } from './entities/image-bock.entity';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Module({
   controllers: [ElementsController],
   providers: [ElementsService],
-  imports: [TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion
-  ])],
+  imports: [
+    TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion, ImageBlock]),
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (_req, file, cb) => {
+          const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+          cb(null, `${unique}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.match(/^image\//)) {
+          return cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+    }),
+  ],
   exports: [ElementsService],
 })
 export class ElementsModule { }

@@ -1,16 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 /* Swagger setup */
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api');
 
   app.enableCors();
+
+  // Serve uploaded images at /uploads/<filename>
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
 
   const config = new DocumentBuilder()
     .setTitle('Deutsch API')

@@ -23,6 +23,8 @@ import { CreateConjugationDto } from './dto/conjugation/create-conjugation.dto';
 import { Quiz } from './entities/quiz.entity';
 import { QuizQuestion } from './entities/quiz-question.entity';
 import { CreateQuizDto } from './dto/quiz/create-quiz.dto';
+import { ImageBlock } from './entities/image-bock.entity';
+import { CreateImageBlockDto } from './dto/image-block/create-image-block.dto';
 
 @Injectable()
 export class ElementsService {
@@ -53,6 +55,8 @@ export class ElementsService {
     private readonly quizRepository: Repository<Quiz>,
     @InjectRepository(QuizQuestion)
     private readonly quizQuestionRepository: Repository<QuizQuestion>,
+    @InjectRepository(ImageBlock)
+    private readonly imageBlockRepository: Repository<ImageBlock>,
   ) { }
 
 
@@ -68,6 +72,7 @@ export class ElementsService {
         case 'table': return this.handleTable(elementDto as CreateTableDto);
         case 'conjugation': return this.handleConjugation(elementDto as CreateConjugationDto);
         case 'quiz': return this.handleQuiz(elementDto as CreateQuizDto);
+        case 'imageBlock': return this.handleImageBlock(elementDto as CreateImageBlockDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default: return this.handleElement(elementDto);
 
@@ -194,6 +199,7 @@ export class ElementsService {
 
 
     // If the subtitle does not have an ID, we are creating a new subtitle
+    delete subtitleDto.id;
     return this.subtitleRepository.save(
       this.subtitleRepository.create(subtitleDto as CreateSubtitleDto),
     );
@@ -454,5 +460,25 @@ export class ElementsService {
     }
 
     return quiz;
+  }
+
+  private async handleImageBlock(imageBlockDto: CreateImageBlockDto) {
+    if (imageBlockDto.delete) {
+      await this.imageBlockRepository.delete({ id: imageBlockDto.id });
+      return null;
+    }
+
+    if (imageBlockDto.id > 0) {
+      const existing = await this.imageBlockRepository.findOneBy({ id: imageBlockDto.id }) as ImageBlock;
+      existing.text = imageBlockDto.text;
+      existing.style = imageBlockDto.style;
+      return this.imageBlockRepository.save(existing);
+    }
+
+    const dto = { ...imageBlockDto } as any;
+    delete dto.id;
+    return this.imageBlockRepository.save(
+      this.imageBlockRepository.create(dto),
+    );
   }
 }
