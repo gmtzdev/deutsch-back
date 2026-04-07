@@ -16,6 +16,10 @@ import { Tag } from './entities/tag.entity';
 import { Table } from './entities/table.entity';
 import { TableRow } from './entities/tablerow.entity';
 import { CreateTableDto } from './dto/table/create-table.dto';
+import { Conjugation } from './entities/conjugation.entity';
+import { VerbData } from './entities/verb-data.entity';
+import { ConjugationRow } from './entities/conjugation-row.entity';
+import { CreateConjugationDto } from './dto/conjugation/create-conjugation.dto';
 
 @Injectable()
 export class ElementsService {
@@ -36,6 +40,12 @@ export class ElementsService {
     private readonly tableRepository: Repository<Table>,
     @InjectRepository(TableRow)
     private readonly tableRowRepository: Repository<TableRow>,
+    @InjectRepository(Conjugation)
+    private readonly conjugationRepository: Repository<Conjugation>,
+    @InjectRepository(VerbData)
+    private readonly verbDataRepository: Repository<VerbData>,
+    @InjectRepository(ConjugationRow)
+    private readonly conjugationRowRepository: Repository<ConjugationRow>,
   ) { }
 
 
@@ -49,6 +59,7 @@ export class ElementsService {
         case 'subtitle': return this.handleSubtitle(elementDto as CreateSubtitleDto);
         case 'unorderedList': return this.handleUnorderedList(elementDto as CreateUnorderedListDto);
         case 'table': return this.handleTable(elementDto as CreateTableDto);
+        case 'conjugation': return this.handleConjugation(elementDto as CreateConjugationDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default:
           return this.elementRepository.save(
@@ -91,6 +102,8 @@ export class ElementsService {
         return this.tagRepository.find({ where: { lesson: { id: lessonId } } });
       case 'table':
         return this.tableRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
+      case 'conjugation':
+        return this.conjugationRepository.find({ where: { lesson: { id: lessonId } }, relations: ['verbs', 'verbs.rows'] });
       default:
         return this.elementRepository.find({ where: { lesson: { id: lessonId } } });
     }
@@ -309,5 +322,64 @@ export class ElementsService {
     return this.tagRepository.save(
       this.tagRepository.create(tagDto as CreateElementDto),
     );
+  }
+
+  private async handleConjugation(conjugationDto: CreateConjugationDto) {
+    // Verify if the conjugation should be deleted
+    if (conjugationDto.delete) {
+      const existing = await this.conjugationRepository.findOne({ where: { id: conjugationDto.id }, relations: ['verbs', 'verbs.rows'] });
+      if (existing) {
+        for (const verb of existing.verbs) {
+          await this.conjugationRowRepository.delete({ verbData: { id: verb.id } });
+        }
+        await this.verbDataRepository.delete({ conjugation: { id: existing.id } });
+        await this.conjugationRepository.delete({ id: existing.id });
+      }
+      return null;
+    }
+
+    // Updating an existing conjugation
+    if (conjugationDto.id > 0) {
+      const existing = await this.conjugationRepository.findOne({ where: { id: conjugationDto.id }, relations: ['verbs', 'verbs.rows'] }) as Conjugation;
+      existing.style = conjugationDto.style;
+      const updatedConjugation = await this.conjugationRepository.save(existing);
+
+      // Replace all verbs and their rows
+      for (const verb of existing.verbs) {
+        await this.conjugationRowRepository.delete({ verbData: { id: verb.id } });
+      }
+      await this.verbDataRepository.delete({ conjugation: { id: existing.id } });
+
+      for (const verbDto of conjugationDto.verbs) {
+        const verbData = this.verbDataRepository.create({ name: verbDto.name, conjugation: updatedConjugation });
+        const savedVerb = await this.verbDataRepository.save(verbData);
+        for (const rowDto of verbDto.rows) {
+          const row = this.conjugationRowRepository.create({ ...rowDto, verbData: savedVerb });
+          await this.conjugationRowRepository.save(row);
+        }
+      }
+
+      return updatedConjugation;
+    }
+
+    // Creating a new conjugation
+    const dto = { ...conjugationDto } as any;
+    delete dto.id;
+    delete dto.verbs;
+
+    const conjugation = await this.conjugationRepository.save(
+      this.conjugationRepository.create(dto),
+    ) as unknown as Conjugation;
+
+    for (const verbDto of conjugationDto.verbs) {
+      const verbData = this.verbDataRepository.create({ name: verbDto.name, conjugation });
+      const savedVerb = await this.verbDataRepository.save(verbData);
+      for (const rowDto of verbDto.rows) {
+        const row = this.conjugationRowRepository.create({ ...rowDto, verbData: savedVerb });
+        await this.conjugationRowRepository.save(row);
+      }
+    }
+
+    return conjugation;
   }
 }

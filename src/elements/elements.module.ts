@@ -10,11 +10,14 @@ import { UnorderedList } from './entities/unorderedlist';
 import { Tag } from './entities/tag.entity';
 import { Table } from './entities/table.entity';
 import { TableRow } from './entities/tablerow.entity';
+import { Conjugation } from './entities/conjugation.entity';
+import { VerbData } from './entities/verb-data.entity';
+import { ConjugationRow } from './entities/conjugation-row.entity';
 
 @Module({
   controllers: [ElementsController],
   providers: [ElementsService],
-  imports: [TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow
+  imports: [TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow
   ])],
   exports: [ElementsService],
 })

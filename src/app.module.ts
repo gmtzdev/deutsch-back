@@ -19,6 +19,9 @@ import { UnorderedList } from './elements/entities/unorderedlist';
 import { Tag } from './elements/entities/tag.entity';
 import { Table } from './elements/entities/table.entity';
 import { TableRow } from './elements/entities/tablerow.entity';
+import { Conjugation } from './elements/entities/conjugation.entity';
+import { VerbData } from './elements/entities/verb-data.entity';
+import { ConjugationRow } from './elements/entities/conjugation-row.entity';
 
 @Module({
   imports: [
@@ -41,7 +44,10 @@ import { TableRow } from './elements/entities/tablerow.entity';
         ListItem,
         Tag,
         Table,
-        TableRow
+        TableRow,
+        Conjugation,
+        VerbData,
+        ConjugationRow
       ],
       synchronize: true,
     }),
