@@ -24,16 +24,21 @@ import { VerbData } from './elements/entities/verb-data.entity';
 import { ConjugationRow } from './elements/entities/conjugation-row.entity';
 import { Quiz } from './elements/entities/quiz.entity';
 import { QuizQuestion } from './elements/entities/quiz-question.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
+
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'lalo',
-      password: 'laura',
-      database: 'deutschapp',
+      type: process.env.TYPE_DB as any,
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 3306),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [
         Level,
         Topic,
@@ -57,13 +62,9 @@ import { QuizQuestion } from './elements/entities/quiz-question.entity';
     }),
 
     ElementsModule,
-
     LevelsModule,
-
     TopicsModule,
-
     SubtopicsModule,
-
     LessonsModule
   ],
   controllers: [AppController],
