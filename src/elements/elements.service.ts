@@ -61,7 +61,6 @@ export class ElementsService {
 
 
   createLesson(createBodyLessonDto: CreateBodyLessonDto) {
-    console.log(createBodyLessonDto);
     const elements = createBodyLessonDto.elements.map(async elementDto => {
       elementDto.lesson = createBodyLessonDto.lesson;
 
@@ -120,7 +119,6 @@ export class ElementsService {
       case 'quiz':
         return this.quizRepository.find({ where: { lesson: { id: lessonId } }, relations: ['questions'] });
       default:
-        console.log(type);
         return null;
     }
   }
