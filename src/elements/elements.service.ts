@@ -143,6 +143,7 @@ export class ElementsService {
       // Update the existing element with new data
       existingElement.text = elementDto.text;
       existingElement.style = elementDto.style;
+      existingElement.order = elementDto.order;
       return this.elementRepository.save(existingElement);
     }
 
@@ -170,12 +171,14 @@ export class ElementsService {
       // Update the existing title with new data
       existingTitle.text = element.text;
       existingTitle.style = element.style;
+      existingTitle.order = element.order;
       existingTitle.baseStyle = element.baseStyle;
       return this.titleRepository.save(existingTitle);
 
     }
 
     // If the title does not have an ID, we are creating a new title
+    delete titleDto.id;
     return this.titleRepository.save(
       this.titleRepository.create(titleDto as CreateTitleDto),
     );
@@ -197,6 +200,7 @@ export class ElementsService {
       // Update the existing subtitle with new data
       existingSubtitle.text = element.text;
       existingSubtitle.style = element.style;
+      existingSubtitle.order = element.order;
       existingSubtitle.baseStyle = element.baseStyle;
       return this.subtitleRepository.save(existingSubtitle);
     }
@@ -227,6 +231,7 @@ export class ElementsService {
       // Update the existing unordered list with new data
       existingUl.style = element.style;
       existingUl.baseStyle = element.baseStyle;
+      existingUl.order = element.order;
       const updatedUl = await this.unorderedListRepository.save(existingUl);
       // Handle list items
       const existingListItems = existingUl.list;
@@ -311,6 +316,7 @@ export class ElementsService {
       existingTable.style = tableDto.style;
       existingTable.baseStyle = tableDto.baseStyle;
       existingTable.headers = tableDto.headers;
+      existingTable.order = tableDto.order;
       const updatedTable = await this.tableRepository.save(existingTable);
 
       // Replace all rows
@@ -357,6 +363,7 @@ export class ElementsService {
       // Update the existing tag with new data
       existingTag.text = element.text;
       existingTag.style = element.style;
+      existingTag.order = element.order;
       return this.tagRepository.save(existingTag);
     }
 
@@ -385,6 +392,7 @@ export class ElementsService {
     if (conjugationDto.id > 0) {
       const existing = await this.conjugationRepository.findOne({ where: { id: conjugationDto.id }, relations: ['verbs', 'verbs.rows'] }) as Conjugation;
       existing.style = conjugationDto.style;
+      existing.order = conjugationDto.order;
       const updatedConjugation = await this.conjugationRepository.save(existing);
 
       // Replace all verbs and their rows
@@ -438,6 +446,7 @@ export class ElementsService {
     if (quizDto.id > 0) {
       const existing = await this.quizRepository.findOne({ where: { id: quizDto.id }, relations: ['questions'] }) as Quiz;
       existing.style = quizDto.style;
+      existing.order = quizDto.order;
       const updatedQuiz = await this.quizRepository.save(existing);
 
       await this.quizQuestionRepository.delete({ quiz: { id: existing.id } });
@@ -476,6 +485,7 @@ export class ElementsService {
       const existing = await this.imageBlockRepository.findOneBy({ id: imageBlockDto.id }) as ImageBlock;
       existing.text = imageBlockDto.text;
       existing.style = imageBlockDto.style;
+      existing.order = imageBlockDto.order;
       return this.imageBlockRepository.save(existing);
     }
 

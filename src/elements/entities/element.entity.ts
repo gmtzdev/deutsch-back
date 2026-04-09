@@ -16,6 +16,9 @@ export class Element {
     @Column({ nullable: false })
     type: ElementType;
 
+    @Column({ nullable: false })
+    order: number;
+
     @CreateDateColumn()
     createdAt: Date;
 

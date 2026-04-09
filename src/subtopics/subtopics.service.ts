@@ -42,8 +42,7 @@ export class SubtopicsService {
           elements = elements.concat(el);
       }
     }
-
-    subtopic.lesson.elements = elements;
+    subtopic.lesson.elements = elements.sort((a, b) => a.order - b.order);
     return subtopic;
   }
 
