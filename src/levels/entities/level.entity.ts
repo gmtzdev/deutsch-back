@@ -1,5 +1,5 @@
 import { Topic } from "../../topics/entities/topic.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Level {
@@ -23,6 +23,12 @@ export class Level {
 
     @Column({ nullable: true })
     color: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 
     @OneToMany(() => Topic, (topic) => topic.level)
     topics: Topic[];

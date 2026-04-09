@@ -1,6 +1,6 @@
 import { Lesson } from "../../lessons/entities/lesson.entity";
 import { Topic } from "../../topics/entities/topic.entity";
-import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Subtopic {
@@ -15,6 +15,12 @@ export class Subtopic {
 
     @Column()
     path: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 
     @ManyToOne(() => Topic, (topic) => topic.subtopics, { nullable: true, onDelete: 'CASCADE' })
     topic: Topic;

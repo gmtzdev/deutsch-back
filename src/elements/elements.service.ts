@@ -25,6 +25,9 @@ import { QuizQuestion } from './entities/quiz-question.entity';
 import { CreateQuizDto } from './dto/quiz/create-quiz.dto';
 import { ImageBlock } from './entities/image-bock.entity';
 import { CreateImageBlockDto } from './dto/image-block/create-image-block.dto';
+import { DragDropExercise } from './entities/drag-drop-exercise.entity';
+import { DragDropRow } from './entities/drag-drop-row.entity';
+import { CreateDragDropDto } from './dto/drag-drop/create-drag-drop.dto';
 
 @Injectable()
 export class ElementsService {
@@ -57,10 +60,15 @@ export class ElementsService {
     private readonly quizQuestionRepository: Repository<QuizQuestion>,
     @InjectRepository(ImageBlock)
     private readonly imageBlockRepository: Repository<ImageBlock>,
+    @InjectRepository(DragDropExercise)
+    private readonly dragDropRepository: Repository<DragDropExercise>,
+    @InjectRepository(DragDropRow)
+    private readonly dragDropRowRepository: Repository<DragDropRow>,
   ) { }
 
 
   createLesson(createBodyLessonDto: CreateBodyLessonDto) {
+    console.log(createBodyLessonDto);
     const elements = createBodyLessonDto.elements.map(async elementDto => {
       elementDto.lesson = createBodyLessonDto.lesson;
 
@@ -72,6 +80,7 @@ export class ElementsService {
         case 'conjugation': return this.handleConjugation(elementDto as CreateConjugationDto);
         case 'quiz': return this.handleQuiz(elementDto as CreateQuizDto);
         case 'imageBlock': return this.handleImageBlock(elementDto as CreateImageBlockDto);
+        case 'dragDrop': return this.handleDragDrop(elementDto as CreateDragDropDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default: return this.handleElement(elementDto);
 
@@ -109,7 +118,13 @@ export class ElementsService {
       case 'subtitle':
         return this.subtitleRepository.find({ where: { lesson: { id: lessonId } } });
       case 'unorderedList':
-        return this.unorderedListRepository.find({ where: { lesson: { id: lessonId } }, relations: ['list'] });
+        return this.unorderedListRepository.find({
+          where: { lesson: { id: lessonId } }, relations: ['list'], order: {
+            list: {
+              id: 'ASC'  // o cualquier campo de ListItem
+            }
+          }
+        });
       case 'tag':
         return this.tagRepository.find({ where: { lesson: { id: lessonId } } });
       case 'table':
@@ -118,6 +133,8 @@ export class ElementsService {
         return this.conjugationRepository.find({ where: { lesson: { id: lessonId } }, relations: ['verbs', 'verbs.rows'] });
       case 'quiz':
         return this.quizRepository.find({ where: { lesson: { id: lessonId } }, relations: ['questions'] });
+      case 'dragDrop':
+        return this.dragDropRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
       default:
         return null;
     }
@@ -137,6 +154,7 @@ export class ElementsService {
       // Update the existing element with new data
       existingElement.text = elementDto.text;
       existingElement.style = elementDto.style;
+      existingElement.order = elementDto.order;
       return this.elementRepository.save(existingElement);
     }
 
@@ -164,12 +182,14 @@ export class ElementsService {
       // Update the existing title with new data
       existingTitle.text = element.text;
       existingTitle.style = element.style;
+      existingTitle.order = element.order;
       existingTitle.baseStyle = element.baseStyle;
       return this.titleRepository.save(existingTitle);
 
     }
 
     // If the title does not have an ID, we are creating a new title
+    delete titleDto.id;
     return this.titleRepository.save(
       this.titleRepository.create(titleDto as CreateTitleDto),
     );
@@ -191,6 +211,7 @@ export class ElementsService {
       // Update the existing subtitle with new data
       existingSubtitle.text = element.text;
       existingSubtitle.style = element.style;
+      existingSubtitle.order = element.order;
       existingSubtitle.baseStyle = element.baseStyle;
       return this.subtitleRepository.save(existingSubtitle);
     }
@@ -221,6 +242,8 @@ export class ElementsService {
       // Update the existing unordered list with new data
       existingUl.style = element.style;
       existingUl.baseStyle = element.baseStyle;
+      existingUl.order = element.order;
+      console.log('Existing UL:', existingUl);
       const updatedUl = await this.unorderedListRepository.save(existingUl);
       // Handle list items
       const existingListItems = existingUl.list;
@@ -237,6 +260,8 @@ export class ElementsService {
         delete newItem.id;
         await this.listItemRepository.save(newItem);
       }
+
+      console.log('Updated UL:', updatedUl);
 
       return updatedUl;
 
@@ -305,6 +330,7 @@ export class ElementsService {
       existingTable.style = tableDto.style;
       existingTable.baseStyle = tableDto.baseStyle;
       existingTable.headers = tableDto.headers;
+      existingTable.order = tableDto.order;
       const updatedTable = await this.tableRepository.save(existingTable);
 
       // Replace all rows
@@ -351,6 +377,7 @@ export class ElementsService {
       // Update the existing tag with new data
       existingTag.text = element.text;
       existingTag.style = element.style;
+      existingTag.order = element.order;
       return this.tagRepository.save(existingTag);
     }
 
@@ -379,6 +406,7 @@ export class ElementsService {
     if (conjugationDto.id > 0) {
       const existing = await this.conjugationRepository.findOne({ where: { id: conjugationDto.id }, relations: ['verbs', 'verbs.rows'] }) as Conjugation;
       existing.style = conjugationDto.style;
+      existing.order = conjugationDto.order;
       const updatedConjugation = await this.conjugationRepository.save(existing);
 
       // Replace all verbs and their rows
@@ -432,6 +460,7 @@ export class ElementsService {
     if (quizDto.id > 0) {
       const existing = await this.quizRepository.findOne({ where: { id: quizDto.id }, relations: ['questions'] }) as Quiz;
       existing.style = quizDto.style;
+      existing.order = quizDto.order;
       const updatedQuiz = await this.quizRepository.save(existing);
 
       await this.quizQuestionRepository.delete({ quiz: { id: existing.id } });
@@ -470,6 +499,7 @@ export class ElementsService {
       const existing = await this.imageBlockRepository.findOneBy({ id: imageBlockDto.id }) as ImageBlock;
       existing.text = imageBlockDto.text;
       existing.style = imageBlockDto.style;
+      existing.order = imageBlockDto.order;
       return this.imageBlockRepository.save(existing);
     }
 
@@ -478,5 +508,47 @@ export class ElementsService {
     return this.imageBlockRepository.save(
       this.imageBlockRepository.create(dto),
     );
+  }
+
+  private async handleDragDrop(dragDropDto: CreateDragDropDto) {
+    // Delete
+    if (dragDropDto.delete) {
+      await this.dragDropRowRepository.delete({ exercise: { id: dragDropDto.id } });
+      await this.dragDropRepository.delete({ id: dragDropDto.id });
+      return null;
+    }
+
+    // Update
+    if (dragDropDto.id > 0) {
+      const existing = await this.dragDropRepository.findOne({ where: { id: dragDropDto.id }, relations: ['rows'] }) as DragDropExercise;
+      existing.style = dragDropDto.style;
+      existing.words = dragDropDto.words;
+      existing.order = dragDropDto.order;
+      const updated = await this.dragDropRepository.save(existing);
+
+      await this.dragDropRowRepository.delete({ exercise: { id: existing.id } });
+      for (const rowDto of dragDropDto.rows) {
+        const row = this.dragDropRowRepository.create({ ...rowDto, exercise: updated });
+        await this.dragDropRowRepository.save(row);
+      }
+
+      return updated;
+    }
+
+    // Create
+    const dto = { ...dragDropDto } as any;
+    delete dto.id;
+    delete dto.rows;
+
+    const exercise = await this.dragDropRepository.save(
+      this.dragDropRepository.create(dto),
+    ) as unknown as DragDropExercise;
+
+    for (const rowDto of dragDropDto.rows) {
+      const row = this.dragDropRowRepository.create({ ...rowDto, exercise });
+      await this.dragDropRowRepository.save(row);
+    }
+
+    return exercise;
   }
 }

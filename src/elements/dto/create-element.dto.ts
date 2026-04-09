@@ -14,6 +14,9 @@ export class CreateElementDto {
     @ApiProperty({ enum: ['element', 'title', 'subtitle'], example: 'element' })
     type: ElementType;
 
+    @ApiProperty({ example: 1 })
+    order: number;
+
     @ApiProperty({
         type: Lesson,
         example: {
@@ -22,5 +25,6 @@ export class CreateElementDto {
     })
     lesson: Lesson;
 
+    @ApiProperty({ example: false })
     delete: boolean;
 }
