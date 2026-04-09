@@ -25,6 +25,9 @@ import { QuizQuestion } from './entities/quiz-question.entity';
 import { CreateQuizDto } from './dto/quiz/create-quiz.dto';
 import { ImageBlock } from './entities/image-bock.entity';
 import { CreateImageBlockDto } from './dto/image-block/create-image-block.dto';
+import { DragDropExercise } from './entities/drag-drop-exercise.entity';
+import { DragDropRow } from './entities/drag-drop-row.entity';
+import { CreateDragDropDto } from './dto/drag-drop/create-drag-drop.dto';
 
 @Injectable()
 export class ElementsService {
@@ -57,10 +60,15 @@ export class ElementsService {
     private readonly quizQuestionRepository: Repository<QuizQuestion>,
     @InjectRepository(ImageBlock)
     private readonly imageBlockRepository: Repository<ImageBlock>,
+    @InjectRepository(DragDropExercise)
+    private readonly dragDropRepository: Repository<DragDropExercise>,
+    @InjectRepository(DragDropRow)
+    private readonly dragDropRowRepository: Repository<DragDropRow>,
   ) { }
 
 
   createLesson(createBodyLessonDto: CreateBodyLessonDto) {
+    console.log(createBodyLessonDto);
     const elements = createBodyLessonDto.elements.map(async elementDto => {
       elementDto.lesson = createBodyLessonDto.lesson;
 
@@ -72,6 +80,7 @@ export class ElementsService {
         case 'conjugation': return this.handleConjugation(elementDto as CreateConjugationDto);
         case 'quiz': return this.handleQuiz(elementDto as CreateQuizDto);
         case 'imageBlock': return this.handleImageBlock(elementDto as CreateImageBlockDto);
+        case 'dragDrop': return this.handleDragDrop(elementDto as CreateDragDropDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default: return this.handleElement(elementDto);
 
@@ -124,6 +133,8 @@ export class ElementsService {
         return this.conjugationRepository.find({ where: { lesson: { id: lessonId } }, relations: ['verbs', 'verbs.rows'] });
       case 'quiz':
         return this.quizRepository.find({ where: { lesson: { id: lessonId } }, relations: ['questions'] });
+      case 'dragDrop':
+        return this.dragDropRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
       default:
         return null;
     }
@@ -232,6 +243,7 @@ export class ElementsService {
       existingUl.style = element.style;
       existingUl.baseStyle = element.baseStyle;
       existingUl.order = element.order;
+      console.log('Existing UL:', existingUl);
       const updatedUl = await this.unorderedListRepository.save(existingUl);
       // Handle list items
       const existingListItems = existingUl.list;
@@ -248,6 +260,8 @@ export class ElementsService {
         delete newItem.id;
         await this.listItemRepository.save(newItem);
       }
+
+      console.log('Updated UL:', updatedUl);
 
       return updatedUl;
 
@@ -494,5 +508,47 @@ export class ElementsService {
     return this.imageBlockRepository.save(
       this.imageBlockRepository.create(dto),
     );
+  }
+
+  private async handleDragDrop(dragDropDto: CreateDragDropDto) {
+    // Delete
+    if (dragDropDto.delete) {
+      await this.dragDropRowRepository.delete({ exercise: { id: dragDropDto.id } });
+      await this.dragDropRepository.delete({ id: dragDropDto.id });
+      return null;
+    }
+
+    // Update
+    if (dragDropDto.id > 0) {
+      const existing = await this.dragDropRepository.findOne({ where: { id: dragDropDto.id }, relations: ['rows'] }) as DragDropExercise;
+      existing.style = dragDropDto.style;
+      existing.words = dragDropDto.words;
+      existing.order = dragDropDto.order;
+      const updated = await this.dragDropRepository.save(existing);
+
+      await this.dragDropRowRepository.delete({ exercise: { id: existing.id } });
+      for (const rowDto of dragDropDto.rows) {
+        const row = this.dragDropRowRepository.create({ ...rowDto, exercise: updated });
+        await this.dragDropRowRepository.save(row);
+      }
+
+      return updated;
+    }
+
+    // Create
+    const dto = { ...dragDropDto } as any;
+    delete dto.id;
+    delete dto.rows;
+
+    const exercise = await this.dragDropRepository.save(
+      this.dragDropRepository.create(dto),
+    ) as unknown as DragDropExercise;
+
+    for (const rowDto of dragDropDto.rows) {
+      const row = this.dragDropRowRepository.create({ ...rowDto, exercise });
+      await this.dragDropRowRepository.save(row);
+    }
+
+    return exercise;
   }
 }

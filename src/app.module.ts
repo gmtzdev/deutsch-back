@@ -25,6 +25,8 @@ import { ConjugationRow } from './elements/entities/conjugation-row.entity';
 import { Quiz } from './elements/entities/quiz.entity';
 import { QuizQuestion } from './elements/entities/quiz-question.entity';
 import { ConfigModule } from '@nestjs/config';
+import { DragDropExercise } from './elements/entities/drag-drop-exercise.entity';
+import { DragDropRow } from './elements/entities/drag-drop-row.entity';
 
 @Module({
   imports: [
@@ -56,7 +58,9 @@ import { ConfigModule } from '@nestjs/config';
         VerbData,
         ConjugationRow,
         Quiz,
-        QuizQuestion
+        QuizQuestion,
+        DragDropExercise,
+        DragDropRow
       ],
       synchronize: true,
     }),

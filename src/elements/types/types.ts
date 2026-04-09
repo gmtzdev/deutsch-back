@@ -7,6 +7,7 @@ import { CreateUnorderedListDto } from "../dto/unorderedlist/create-title.dto";
 import { CreateConjugationDto } from "../dto/conjugation/create-conjugation.dto";
 import { CreateQuizDto } from "../dto/quiz/create-quiz.dto";
 import { CreateImageBlockDto } from "../dto/image-block/create-image-block.dto";
+import { CreateDragDropDto } from "../dto/drag-drop/create-drag-drop.dto";
 import { Element } from "../entities/element.entity";
 import { ListItem } from "../entities/listitem.entity";
 import { Subtitle } from "../entities/subtitle.entity";
@@ -18,9 +19,10 @@ import { UnorderedList } from "../entities/unorderedlist";
 import { Conjugation } from "../entities/conjugation.entity";
 import { Quiz } from "../entities/quiz.entity";
 import { ImageBlock } from "../entities/image-bock.entity";
+import { DragDropExercise } from "../entities/drag-drop-exercise.entity";
 
 
-export type LessonElementDto = CreateElementDto | CreateTitleDto | CreateSubtitleDto | CreateListItemDto | CreateUnorderedListDto | CreateTableDto | CreateConjugationDto | CreateQuizDto | CreateImageBlockDto;
-export type ElementType = 'element' | 'title' | 'subtitle' | 'listItem' | 'unorderedList' | 'table' | 'tip' | 'tag' | 'conjugation' | 'quiz' | 'imageBlock';
-export type ElementTypeObj = Element | Title | Subtitle | ListItem | UnorderedList | Table | Tip | Tag | Conjugation | Quiz | ImageBlock;
-export const elementTypes: ElementType[] = ['element', 'title', 'subtitle', 'listItem', 'unorderedList', 'table', 'tip', 'tag', 'conjugation', 'quiz', 'imageBlock'];
+export type LessonElementDto = CreateElementDto | CreateTitleDto | CreateSubtitleDto | CreateListItemDto | CreateUnorderedListDto | CreateTableDto | CreateConjugationDto | CreateQuizDto | CreateImageBlockDto | CreateDragDropDto;
+export type ElementType = 'element' | 'title' | 'subtitle' | 'listItem' | 'unorderedList' | 'table' | 'tip' | 'tag' | 'conjugation' | 'quiz' | 'imageBlock' | 'dragDrop';
+export type ElementTypeObj = Element | Title | Subtitle | ListItem | UnorderedList | Table | Tip | Tag | Conjugation | Quiz | ImageBlock | DragDropExercise;
+export const elementTypes: ElementType[] = ['element', 'title', 'subtitle', 'listItem', 'unorderedList', 'table', 'tip', 'tag', 'conjugation', 'quiz', 'imageBlock', 'dragDrop'];

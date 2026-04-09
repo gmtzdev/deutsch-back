@@ -19,12 +19,14 @@ import { ImageBlock } from './entities/image-bock.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { DragDropExercise } from './entities/drag-drop-exercise.entity';
+import { DragDropRow } from './entities/drag-drop-row.entity';
 
 @Module({
   controllers: [ElementsController],
   providers: [ElementsService],
   imports: [
-    TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion, ImageBlock]),
+    TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion, ImageBlock, DragDropExercise, DragDropRow]),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',
