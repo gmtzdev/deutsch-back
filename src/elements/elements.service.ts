@@ -109,7 +109,13 @@ export class ElementsService {
       case 'subtitle':
         return this.subtitleRepository.find({ where: { lesson: { id: lessonId } } });
       case 'unorderedList':
-        return this.unorderedListRepository.find({ where: { lesson: { id: lessonId } }, relations: ['list'] });
+        return this.unorderedListRepository.find({
+          where: { lesson: { id: lessonId } }, relations: ['list'], order: {
+            list: {
+              id: 'ASC'  // o cualquier campo de ListItem
+            }
+          }
+        });
       case 'tag':
         return this.tagRepository.find({ where: { lesson: { id: lessonId } } });
       case 'table':
