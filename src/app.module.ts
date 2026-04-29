@@ -27,6 +27,8 @@ import { QuizQuestion } from './elements/entities/quiz-question.entity';
 import { ConfigModule } from '@nestjs/config';
 import { DragDropExercise } from './elements/entities/drag-drop-exercise.entity';
 import { DragDropRow } from './elements/entities/drag-drop-row.entity';
+import { AuthModule } from './auth/auth.module';
+import { User } from './auth/entities/user.entity';
 
 @Module({
   imports: [
@@ -60,7 +62,8 @@ import { DragDropRow } from './elements/entities/drag-drop-row.entity';
         Quiz,
         QuizQuestion,
         DragDropExercise,
-        DragDropRow
+        DragDropRow,
+        User
       ],
       synchronize: true,
     }),
@@ -69,7 +72,8 @@ import { DragDropRow } from './elements/entities/drag-drop-row.entity';
     LevelsModule,
     TopicsModule,
     SubtopicsModule,
-    LessonsModule
+    LessonsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
