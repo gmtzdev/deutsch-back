@@ -2,12 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TopicsService } from './topics.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('topics')
 export class TopicsController {
-  constructor(private readonly topicsService: TopicsService) {}
+  constructor(private readonly topicsService: TopicsService) { }
 
   @Post()
+  @ApiBody({ type: CreateTopicDto })
   create(@Body() createTopicDto: CreateTopicDto) {
     return this.topicsService.create(createTopicDto);
   }

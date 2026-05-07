@@ -12,7 +12,7 @@ export class Level {
     @Column()
     description: string;
 
-    @Column()
+    @Column({ length: 500 })
     icon: string;
 
     @Column()

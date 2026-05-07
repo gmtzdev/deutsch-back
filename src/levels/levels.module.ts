@@ -9,6 +9,7 @@ import { Level } from './entities/level.entity';
   providers: [LevelsService],
   imports: [
     TypeOrmModule.forFeature([Level])
-  ]
+  ],
+  exports: [LevelsService],
 })
 export class LevelsModule { }

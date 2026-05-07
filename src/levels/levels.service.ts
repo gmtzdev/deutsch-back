@@ -37,4 +37,18 @@ export class LevelsService {
   remove(id: number) {
     return `This action removes a #${id} level`;
   }
+
+
+  public recalculateLessonNumbers() {
+    this.levelRepository.find({ relations: ['topics', 'topics.subtopics'] }).then(levels => {
+      levels.forEach(level => {
+        let lessonNumber = 0;
+        level.topics.forEach(topic => {
+          lessonNumber++;
+        });
+        level.lessonNumber = lessonNumber;
+        this.levelRepository.save(level);
+      });
+    });
+  }
 }
