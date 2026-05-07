@@ -29,6 +29,7 @@ import { DragDropExercise } from './elements/entities/drag-drop-exercise.entity'
 import { DragDropRow } from './elements/entities/drag-drop-row.entity';
 import { AuthModule } from './auth/auth.module';
 import { User } from './auth/entities/user.entity';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { User } from './auth/entities/user.entity';
     SubtopicsModule,
     LessonsModule,
     AuthModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
