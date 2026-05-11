@@ -28,6 +28,10 @@ import { CreateImageBlockDto } from './dto/image-block/create-image-block.dto';
 import { DragDropExercise } from './entities/drag-drop-exercise.entity';
 import { DragDropRow } from './entities/drag-drop-row.entity';
 import { CreateDragDropDto } from './dto/drag-drop/create-drag-drop.dto';
+import { PronunciationBlock } from './entities/pronunciation-block.entity';
+import { PronunciationItem } from './entities/pronunciation-item.entity';
+import { CreatePronunciationBlockDto } from './dto/pronunciation/create-pronunciation-block.dto';
+import { AlphabetBlock } from './entities/alphabet-block.entity';
 
 @Injectable()
 export class ElementsService {
@@ -64,6 +68,12 @@ export class ElementsService {
     private readonly dragDropRepository: Repository<DragDropExercise>,
     @InjectRepository(DragDropRow)
     private readonly dragDropRowRepository: Repository<DragDropRow>,
+    @InjectRepository(PronunciationBlock)
+    private readonly pronunciationBlockRepository: Repository<PronunciationBlock>,
+    @InjectRepository(PronunciationItem)
+    private readonly pronunciationItemRepository: Repository<PronunciationItem>,
+    @InjectRepository(AlphabetBlock)
+    private readonly alphabetBlockRepository: Repository<AlphabetBlock>,
   ) { }
 
 
@@ -81,6 +91,8 @@ export class ElementsService {
         case 'quiz': return this.handleQuiz(elementDto as CreateQuizDto);
         case 'imageBlock': return this.handleImageBlock(elementDto as CreateImageBlockDto);
         case 'dragDrop': return this.handleDragDrop(elementDto as CreateDragDropDto);
+        case 'pronunciationBlock': return this.handlePronunciationBlock(elementDto as CreatePronunciationBlockDto);
+        case 'alphabetBlock': return this.handleAlphabetBlock(elementDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
         default: return this.handleElement(elementDto);
 
@@ -135,6 +147,10 @@ export class ElementsService {
         return this.quizRepository.find({ where: { lesson: { id: lessonId } }, relations: ['questions'] });
       case 'dragDrop':
         return this.dragDropRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
+      case 'pronunciationBlock':
+        return this.pronunciationBlockRepository.find({ where: { lesson: { id: lessonId } }, relations: ['items'] });
+      case 'alphabetBlock':
+        return this.alphabetBlockRepository.find({ where: { lesson: { id: lessonId } } });
       default:
         return null;
     }
@@ -550,5 +566,70 @@ export class ElementsService {
     }
 
     return exercise;
+  }
+
+  private async handlePronunciationBlock(dto: CreatePronunciationBlockDto) {
+    // Delete
+    if (dto.delete) {
+      await this.pronunciationItemRepository.delete({ block: { id: dto.id } });
+      await this.pronunciationBlockRepository.delete({ id: dto.id });
+      return null;
+    }
+
+    // Update
+    if (dto.id > 0) {
+      const existing = await this.pronunciationBlockRepository.findOne({ where: { id: dto.id }, relations: ['items'] }) as PronunciationBlock;
+      existing.style = dto.style;
+      existing.order = dto.order;
+      const updated = await this.pronunciationBlockRepository.save(existing);
+
+      await this.pronunciationItemRepository.delete({ block: { id: existing.id } });
+      for (const itemDto of dto.items) {
+        const item = this.pronunciationItemRepository.create({ ...itemDto, block: updated });
+        delete item.id;
+        await this.pronunciationItemRepository.save(item);
+      }
+
+      return updated;
+    }
+
+    // Create
+    const blockDto = { ...dto } as any;
+    delete blockDto.id;
+    delete blockDto.items;
+
+    const block = await this.pronunciationBlockRepository.save(
+      this.pronunciationBlockRepository.create(blockDto),
+    ) as unknown as PronunciationBlock;
+
+    for (const itemDto of dto.items) {
+      const item = this.pronunciationItemRepository.create({ ...itemDto, block });
+      await this.pronunciationItemRepository.save(item);
+    }
+
+    return block;
+  }
+
+  private async handleAlphabetBlock(dto: CreateElementDto) {
+    // Delete
+    if (dto.delete) {
+      await this.alphabetBlockRepository.delete({ id: dto.id });
+      return null;
+    }
+
+    // Update
+    if (dto.id > 0) {
+      const existing = await this.alphabetBlockRepository.findOneBy({ id: dto.id }) as AlphabetBlock;
+      existing.style = dto.style;
+      existing.order = dto.order;
+      return this.alphabetBlockRepository.save(existing);
+    }
+
+    // Create
+    const blockDto = { ...dto } as any;
+    delete blockDto.id;
+    return this.alphabetBlockRepository.save(
+      this.alphabetBlockRepository.create(blockDto),
+    );
   }
 }

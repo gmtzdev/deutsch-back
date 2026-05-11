@@ -30,6 +30,9 @@ import { DragDropRow } from './elements/entities/drag-drop-row.entity';
 import { AuthModule } from './auth/auth.module';
 import { User } from './auth/entities/user.entity';
 import { AdminModule } from './admin/admin.module';
+import { PronunciationBlock } from './elements/entities/pronunciation-block.entity';
+import { PronunciationItem } from './elements/entities/pronunciation-item.entity';
+import { AlphabetBlock } from './elements/entities/alphabet-block.entity';
 
 @Module({
   imports: [
@@ -64,6 +67,9 @@ import { AdminModule } from './admin/admin.module';
         QuizQuestion,
         DragDropExercise,
         DragDropRow,
+        PronunciationBlock,
+        PronunciationItem,
+        AlphabetBlock,
         User
       ],
       synchronize: true,
