@@ -16,8 +16,8 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  // Serve uploaded images at /uploads/<filename>
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
+  // Serve uploaded images at /api/uploads/<filename>
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/api/uploads' });
 
   const config = new DocumentBuilder()
     .setTitle('Deutsch API')

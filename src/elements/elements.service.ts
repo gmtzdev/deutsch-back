@@ -82,6 +82,7 @@ export class ElementsService {
     const elements = createBodyLessonDto.elements.map(async elementDto => {
       elementDto.lesson = createBodyLessonDto.lesson;
 
+      console.log('Processing element:', elementDto);
       switch (elementDto.type) {
         case 'title': return this.handleTitle(elementDto as CreateTitleDto);
         case 'subtitle': return this.handleSubtitle(elementDto as CreateSubtitleDto);
@@ -171,6 +172,8 @@ export class ElementsService {
       existingElement.text = elementDto.text;
       existingElement.style = elementDto.style;
       existingElement.order = elementDto.order;
+      existingElement.gridId = elementDto.gridId ?? null;
+      existingElement.gridCols = elementDto.gridCols ?? 1;
       return this.elementRepository.save(existingElement);
     }
 
@@ -200,6 +203,8 @@ export class ElementsService {
       existingTitle.style = element.style;
       existingTitle.order = element.order;
       existingTitle.baseStyle = element.baseStyle;
+      existingTitle.gridId = element.gridId ?? null;
+      existingTitle.gridCols = element.gridCols ?? 1;
       return this.titleRepository.save(existingTitle);
 
     }
@@ -229,6 +234,8 @@ export class ElementsService {
       existingSubtitle.style = element.style;
       existingSubtitle.order = element.order;
       existingSubtitle.baseStyle = element.baseStyle;
+      existingSubtitle.gridId = element.gridId ?? null;
+      existingSubtitle.gridCols = element.gridCols ?? 1;
       return this.subtitleRepository.save(existingSubtitle);
     }
 
@@ -259,6 +266,8 @@ export class ElementsService {
       existingUl.style = element.style;
       existingUl.baseStyle = element.baseStyle;
       existingUl.order = element.order;
+      existingUl.gridId = element.gridId ?? null;
+      existingUl.gridCols = element.gridCols ?? 1;
       console.log('Existing UL:', existingUl);
       const updatedUl = await this.unorderedListRepository.save(existingUl);
       // Handle list items
@@ -347,6 +356,8 @@ export class ElementsService {
       existingTable.baseStyle = tableDto.baseStyle;
       existingTable.headers = tableDto.headers;
       existingTable.order = tableDto.order;
+      existingTable.gridId = tableDto.gridId ?? null;
+      existingTable.gridCols = tableDto.gridCols ?? 1;
       const updatedTable = await this.tableRepository.save(existingTable);
 
       // Replace all rows
@@ -394,6 +405,8 @@ export class ElementsService {
       existingTag.text = element.text;
       existingTag.style = element.style;
       existingTag.order = element.order;
+      existingTag.gridId = element.gridId ?? null;
+      existingTag.gridCols = element.gridCols ?? 1;
       return this.tagRepository.save(existingTag);
     }
 
@@ -423,6 +436,8 @@ export class ElementsService {
       const existing = await this.conjugationRepository.findOne({ where: { id: conjugationDto.id }, relations: ['verbs', 'verbs.rows'] }) as Conjugation;
       existing.style = conjugationDto.style;
       existing.order = conjugationDto.order;
+      existing.gridId = conjugationDto.gridId ?? null;
+      existing.gridCols = conjugationDto.gridCols ?? 1;
       const updatedConjugation = await this.conjugationRepository.save(existing);
 
       // Replace all verbs and their rows
@@ -477,6 +492,8 @@ export class ElementsService {
       const existing = await this.quizRepository.findOne({ where: { id: quizDto.id }, relations: ['questions'] }) as Quiz;
       existing.style = quizDto.style;
       existing.order = quizDto.order;
+      existing.gridId = quizDto.gridId ?? null;
+      existing.gridCols = quizDto.gridCols ?? 1;
       const updatedQuiz = await this.quizRepository.save(existing);
 
       await this.quizQuestionRepository.delete({ quiz: { id: existing.id } });
@@ -516,6 +533,8 @@ export class ElementsService {
       existing.text = imageBlockDto.text;
       existing.style = imageBlockDto.style;
       existing.order = imageBlockDto.order;
+      existing.gridId = imageBlockDto.gridId ?? null;
+      existing.gridCols = imageBlockDto.gridCols ?? 1;
       return this.imageBlockRepository.save(existing);
     }
 
@@ -540,6 +559,8 @@ export class ElementsService {
       existing.style = dragDropDto.style;
       existing.words = dragDropDto.words;
       existing.order = dragDropDto.order;
+      existing.gridId = dragDropDto.gridId ?? null;
+      existing.gridCols = dragDropDto.gridCols ?? 1;
       const updated = await this.dragDropRepository.save(existing);
 
       await this.dragDropRowRepository.delete({ exercise: { id: existing.id } });
@@ -581,6 +602,8 @@ export class ElementsService {
       const existing = await this.pronunciationBlockRepository.findOne({ where: { id: dto.id }, relations: ['items'] }) as PronunciationBlock;
       existing.style = dto.style;
       existing.order = dto.order;
+      existing.gridId = dto.gridId ?? null;
+      existing.gridCols = dto.gridCols ?? 1;
       const updated = await this.pronunciationBlockRepository.save(existing);
 
       await this.pronunciationItemRepository.delete({ block: { id: existing.id } });
@@ -622,6 +645,8 @@ export class ElementsService {
       const existing = await this.alphabetBlockRepository.findOneBy({ id: dto.id }) as AlphabetBlock;
       existing.style = dto.style;
       existing.order = dto.order;
+      existing.gridId = dto.gridId ?? null;
+      existing.gridCols = dto.gridCols ?? 1;
       return this.alphabetBlockRepository.save(existing);
     }
 
