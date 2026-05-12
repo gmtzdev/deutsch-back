@@ -27,6 +27,12 @@ import { QuizQuestion } from './elements/entities/quiz-question.entity';
 import { ConfigModule } from '@nestjs/config';
 import { DragDropExercise } from './elements/entities/drag-drop-exercise.entity';
 import { DragDropRow } from './elements/entities/drag-drop-row.entity';
+import { AuthModule } from './auth/auth.module';
+import { User } from './auth/entities/user.entity';
+import { AdminModule } from './admin/admin.module';
+import { PronunciationBlock } from './elements/entities/pronunciation-block.entity';
+import { PronunciationItem } from './elements/entities/pronunciation-item.entity';
+import { AlphabetBlock } from './elements/entities/alphabet-block.entity';
 
 @Module({
   imports: [
@@ -60,7 +66,11 @@ import { DragDropRow } from './elements/entities/drag-drop-row.entity';
         Quiz,
         QuizQuestion,
         DragDropExercise,
-        DragDropRow
+        DragDropRow,
+        PronunciationBlock,
+        PronunciationItem,
+        AlphabetBlock,
+        User
       ],
       synchronize: true,
     }),
@@ -69,7 +79,9 @@ import { DragDropRow } from './elements/entities/drag-drop-row.entity';
     LevelsModule,
     TopicsModule,
     SubtopicsModule,
-    LessonsModule
+    LessonsModule,
+    AuthModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

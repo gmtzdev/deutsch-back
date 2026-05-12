@@ -10,10 +10,10 @@ export class Subtopic {
     @Column()
     title: string;
 
-    @Column()
+    @Column({ default: '' })
     icon: string;
 
-    @Column()
+    @Column({ default: '' })
     path: string;
 
     @CreateDateColumn()

@@ -27,4 +27,10 @@ export class CreateElementDto {
 
     @ApiProperty({ example: false })
     delete: boolean;
+
+    @ApiPropertyOptional({ example: 'grid_1715000000000' })
+    gridId?: string | null;
+
+    @ApiPropertyOptional({ example: 1 })
+    gridCols?: number;
 }
