@@ -27,7 +27,13 @@ export class LevelsService {
   }
 
   findOne(id: number) {
-    return this.levelRepository.findOne({ where: { id }, relations: ['topics', 'topics.subtopics'] });
+    return this.levelRepository.createQueryBuilder('level')
+      .leftJoinAndSelect('level.topics', 'topic')
+      .leftJoinAndSelect('topic.subtopics', 'subtopic')
+      .where('level.id = :id', { id })
+      .orderBy('topic.id', 'ASC')
+      .addOrderBy('subtopic.id', 'ASC')
+      .getOne();
   }
 
   update(id: number, updateLevelDto: UpdateLevelDto) {

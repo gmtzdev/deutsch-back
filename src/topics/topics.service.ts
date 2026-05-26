@@ -26,7 +26,6 @@ export class TopicsService {
 
   findOne(id: number) {
     return this.topicRepository.findOneBy({ id });
-
   }
 
   async update(id: number, updateTopicDto: UpdateTopicDto) {
