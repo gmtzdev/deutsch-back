@@ -141,7 +141,13 @@ export class ElementsService {
       case 'tag':
         return this.tagRepository.find({ where: { lesson: { id: lessonId } } });
       case 'table':
-        return this.tableRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
+        return this.tableRepository.find({
+          where: { lesson: { id: lessonId } }, relations: ['rows'], order: {
+            rows: {
+              id: 'ASC'  // o cualquier campo de TableRow
+            }
+          }
+        });
       case 'conjugation':
         return this.conjugationRepository.find({ where: { lesson: { id: lessonId } }, relations: ['verbs', 'verbs.rows'] });
       case 'quiz':
