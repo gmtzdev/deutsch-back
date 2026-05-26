@@ -80,30 +80,32 @@ export class ElementsService {
   ) { }
 
 
-  createLesson(createBodyLessonDto: CreateBodyLessonDto) {
+  async createLesson(createBodyLessonDto: CreateBodyLessonDto) {
     console.log(createBodyLessonDto);
-    const elements = createBodyLessonDto.elements.map(async elementDto => {
+    const results = [];
+    for (const elementDto of createBodyLessonDto.elements) {
       elementDto.lesson = createBodyLessonDto.lesson;
 
       console.log('Processing element:', elementDto);
+      let result: any;
       switch (elementDto.type) {
-        case 'title': return this.handleTitle(elementDto as CreateTitleDto);
-        case 'subtitle': return this.handleSubtitle(elementDto as CreateSubtitleDto);
-        case 'unorderedList': return this.handleUnorderedList(elementDto as CreateUnorderedListDto);
-        case 'table': return this.handleTable(elementDto as CreateTableDto);
-        case 'conjugation': return this.handleConjugation(elementDto as CreateConjugationDto);
-        case 'quiz': return this.handleQuiz(elementDto as CreateQuizDto);
-        case 'imageBlock': return this.handleImageBlock(elementDto as CreateImageBlockDto);
-        case 'dragDrop': return this.handleDragDrop(elementDto as CreateDragDropDto);
-        case 'pronunciationBlock': return this.handlePronunciationBlock(elementDto as CreatePronunciationBlockDto);
-        case 'alphabetBlock': return this.handleAlphabetBlock(elementDto);
-        case 'tag': return this.handleTag(elementDto as CreateElementDto);
-        case 'tip': return this.handleTip(elementDto as CreateElementDto);
-        default: return this.handleElement(elementDto);
-
+        case 'title': result = await this.handleTitle(elementDto as CreateTitleDto); break;
+        case 'subtitle': result = await this.handleSubtitle(elementDto as CreateSubtitleDto); break;
+        case 'unorderedList': result = await this.handleUnorderedList(elementDto as CreateUnorderedListDto); break;
+        case 'table': result = await this.handleTable(elementDto as CreateTableDto); break;
+        case 'conjugation': result = await this.handleConjugation(elementDto as CreateConjugationDto); break;
+        case 'quiz': result = await this.handleQuiz(elementDto as CreateQuizDto); break;
+        case 'imageBlock': result = await this.handleImageBlock(elementDto as CreateImageBlockDto); break;
+        case 'dragDrop': result = await this.handleDragDrop(elementDto as CreateDragDropDto); break;
+        case 'pronunciationBlock': result = await this.handlePronunciationBlock(elementDto as CreatePronunciationBlockDto); break;
+        case 'alphabetBlock': result = await this.handleAlphabetBlock(elementDto); break;
+        case 'tag': result = await this.handleTag(elementDto as CreateElementDto); break;
+        case 'tip': result = await this.handleTip(elementDto as CreateElementDto); break;
+        default: result = await this.handleElement(elementDto); break;
       }
-    });
-    return Promise.all(elements);
+      results.push(result);
+    }
+    return results;
   }
 
   create(createElementDto: CreateElementDto) {
