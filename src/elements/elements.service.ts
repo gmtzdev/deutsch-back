@@ -160,6 +160,8 @@ export class ElementsService {
         return this.dragDropRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
       case 'pronunciationBlock':
         return this.pronunciationBlockRepository.find({ where: { lesson: { id: lessonId } }, relations: ['items'] });
+      case 'imageBlock':
+        return this.imageBlockRepository.find({ where: { lesson: { id: lessonId } } });
       case 'alphabetBlock':
         return this.alphabetBlockRepository.find({ where: { lesson: { id: lessonId } } });
       case 'tip':
@@ -179,7 +181,8 @@ export class ElementsService {
 
     // If the element has an ID, it means we are updating an existing element
     if (elementDto.id > 0) {
-      const existingElement = await this.elementRepository.findOneBy({ id: elementDto.id }) as Element;
+      const existingElement = await this.elementRepository.findOneBy({ id: elementDto.id });
+      if (!existingElement) return null;
       // Update the existing element with new data
       existingElement.text = elementDto.text;
       existingElement.style = elementDto.style;
@@ -208,7 +211,8 @@ export class ElementsService {
 
     // If the title has an ID, it means we are updating an existing title
     if (titleDto.id > 0) {
-      const existingTitle = await this.titleRepository.findOneBy({ id: titleDto.id }) as Title;
+      const existingTitle = await this.titleRepository.findOneBy({ id: titleDto.id });
+      if (!existingTitle) return null;
       const element = titleDto as CreateTitleDto;
       // Update the existing title with new data
       existingTitle.text = element.text;
@@ -239,7 +243,8 @@ export class ElementsService {
 
     // If the subtitle has an ID, it means we are updating an existing subtitle
     if (subtitleDto.id > 0) {
-      const existingSubtitle = await this.subtitleRepository.findOneBy({ id: subtitleDto.id }) as Subtitle;
+      const existingSubtitle = await this.subtitleRepository.findOneBy({ id: subtitleDto.id });
+      if (!existingSubtitle) return null;
       const element = subtitleDto as CreateSubtitleDto;
       // Update the existing subtitle with new data
       existingSubtitle.text = element.text;
@@ -272,7 +277,8 @@ export class ElementsService {
 
     // If the unordered list has an ID, it means we are updating an existing unordered list
     if (ulDto.id > 0) {
-      const existingUl = await this.unorderedListRepository.findOne({ where: { id: ulDto.id }, relations: ['list'] }) as UnorderedList;
+      const existingUl = await this.unorderedListRepository.findOneBy({ id: ulDto.id });
+      if (!existingUl) return null;
       const element = ulDto as CreateUnorderedListDto;
       // Update the existing unordered list with new data
       existingUl.style = element.style;
@@ -280,10 +286,8 @@ export class ElementsService {
       existingUl.order = element.order;
       existingUl.gridId = element.gridId ?? null;
       existingUl.gridCols = element.gridCols ?? 1;
-      console.log('Existing UL:', existingUl);
       const updatedUl = await this.unorderedListRepository.save(existingUl);
       // Handle list items
-      const existingListItems = existingUl.list;
       const updatedListItems = element.list;
 
       //Delete all list items
@@ -292,7 +296,7 @@ export class ElementsService {
       // Create new list items
       for (const itemDto of updatedListItems) {
         const newItem = this.listItemRepository.create(itemDto);
-        newItem.lesson = existingUl.lesson;
+        newItem.lesson = ulDto.lesson;
         newItem.ul = updatedUl;
         delete newItem.id;
         await this.listItemRepository.save(newItem);
@@ -337,19 +341,17 @@ export class ElementsService {
     // Delete id property to dto
     delete dto.id;
 
-    const ul = await this.unorderedListRepository.save(
-      this.elementRepository.create(dto),
-    ) as UnorderedList;
+    const ul = (await this.unorderedListRepository.save(
+      this.unorderedListRepository.create({ ...dto, list: undefined } as any),
+    ) as unknown) as UnorderedList;
 
-    dto.list.map(item => {
-      item.lesson = ul.lesson;
-      item.ul = ul;
-      delete item.id;
-
-      this.listItemRepository.save(
-        this.listItemRepository.create(item)
-      );
-    });
+    for (const item of dto.list) {
+      const newItem = this.listItemRepository.create(item);
+      newItem.lesson = dto.lesson;
+      newItem.ul = ul;
+      delete newItem.id;
+      await this.listItemRepository.save(newItem);
+    }
     return ul;
   }
 
@@ -363,7 +365,8 @@ export class ElementsService {
 
     // If the table has an ID, we are updating an existing table
     if (tableDto.id > 0) {
-      const existingTable = await this.tableRepository.findOne({ where: { id: tableDto.id }, relations: ['rows'] }) as Table;
+      const existingTable = await this.tableRepository.findOneBy({ id: tableDto.id });
+      if (!existingTable) return null;
       existingTable.style = tableDto.style;
       existingTable.baseStyle = tableDto.baseStyle;
       existingTable.headers = tableDto.headers;
@@ -411,7 +414,8 @@ export class ElementsService {
 
     // If the tag has an ID, it means we are updating an existing tag
     if (tagDto.id > 0) {
-      const existingTag = await this.tagRepository.findOneBy({ id: tagDto.id }) as Tag;
+      const existingTag = await this.tagRepository.findOneBy({ id: tagDto.id });
+      if (!existingTag) return null;
       const element = tagDto as CreateElementDto;
       // Update the existing tag with new data
       existingTag.text = element.text;
@@ -445,7 +449,8 @@ export class ElementsService {
 
     // Updating an existing conjugation
     if (conjugationDto.id > 0) {
-      const existing = await this.conjugationRepository.findOne({ where: { id: conjugationDto.id }, relations: ['verbs', 'verbs.rows'] }) as Conjugation;
+      const existing = await this.conjugationRepository.findOneBy({ id: conjugationDto.id });
+      if (!existing) return null;
       existing.style = conjugationDto.style;
       existing.order = conjugationDto.order;
       existing.gridId = conjugationDto.gridId ?? null;
@@ -453,9 +458,7 @@ export class ElementsService {
       const updatedConjugation = await this.conjugationRepository.save(existing);
 
       // Replace all verbs and their rows
-      for (const verb of existing.verbs) {
-        await this.conjugationRowRepository.delete({ verbData: { id: verb.id } });
-      }
+      // Deleting verbData cascade-deletes ConjugationRow via onDelete: 'CASCADE'
       await this.verbDataRepository.delete({ conjugation: { id: existing.id } });
 
       for (const verbDto of conjugationDto.verbs) {
@@ -501,7 +504,8 @@ export class ElementsService {
 
     // Update
     if (quizDto.id > 0) {
-      const existing = await this.quizRepository.findOne({ where: { id: quizDto.id }, relations: ['questions'] }) as Quiz;
+      const existing = await this.quizRepository.findOneBy({ id: quizDto.id });
+      if (!existing) return null;
       existing.style = quizDto.style;
       existing.order = quizDto.order;
       existing.gridId = quizDto.gridId ?? null;
@@ -541,7 +545,8 @@ export class ElementsService {
     }
 
     if (imageBlockDto.id > 0) {
-      const existing = await this.imageBlockRepository.findOneBy({ id: imageBlockDto.id }) as ImageBlock;
+      const existing = await this.imageBlockRepository.findOneBy({ id: imageBlockDto.id });
+      if (!existing) return null;
       existing.text = imageBlockDto.text;
       existing.style = imageBlockDto.style;
       existing.order = imageBlockDto.order;
@@ -567,7 +572,8 @@ export class ElementsService {
 
     // Update
     if (dragDropDto.id > 0) {
-      const existing = await this.dragDropRepository.findOne({ where: { id: dragDropDto.id }, relations: ['rows'] }) as DragDropExercise;
+      const existing = await this.dragDropRepository.findOneBy({ id: dragDropDto.id });
+      if (!existing) return null;
       existing.style = dragDropDto.style;
       existing.words = dragDropDto.words;
       existing.order = dragDropDto.order;
@@ -611,7 +617,8 @@ export class ElementsService {
 
     // Update
     if (dto.id > 0) {
-      const existing = await this.pronunciationBlockRepository.findOne({ where: { id: dto.id }, relations: ['items'] }) as PronunciationBlock;
+      const existing = await this.pronunciationBlockRepository.findOneBy({ id: dto.id });
+      if (!existing) return null;
       existing.style = dto.style;
       existing.order = dto.order;
       existing.gridId = dto.gridId ?? null;
@@ -654,7 +661,8 @@ export class ElementsService {
 
     // Update
     if (dto.id > 0) {
-      const existing = await this.alphabetBlockRepository.findOneBy({ id: dto.id }) as AlphabetBlock;
+      const existing = await this.alphabetBlockRepository.findOneBy({ id: dto.id });
+      if (!existing) return null;
       existing.style = dto.style;
       existing.order = dto.order;
       existing.gridId = dto.gridId ?? null;
@@ -679,7 +687,8 @@ export class ElementsService {
 
     // If the tip has an ID, it means we are updating an existing tip
     if (tipDto.id > 0) {
-      const existingTip = await this.tipRepository.findOneBy({ id: tipDto.id }) as Tip;
+      const existingTip = await this.tipRepository.findOneBy({ id: tipDto.id });
+      if (!existingTip) return null;
       const element = tipDto as CreateElementDto;
       // Update the existing tip with new data
       // existingTip.tipTitle = element.tipTitle;
