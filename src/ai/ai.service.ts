@@ -47,7 +47,7 @@ Los tipos de elemento disponibles son:
 - element: Párrafo de texto simple. Usa 'text' para el contenido.
 - title: Título principal. Usa 'text' y 'baseStyle' (h1, h2, h3).
 - subtitle: Subtítulo. Usa 'text' y 'baseStyle' (h4, h5).
-- tip: Cuadro de consejo/nota. Usa 'text'.
+- tip: Cuadro de consejo/nota. Usa 'text' Y 'tipTitle'.
 - unorderedList: Lista con viñetas. Usa 'list': array de {baseStyle: 'li', content: string}.
 - table: Tabla. Usa 'headers': string[] y 'rows': [{cells: string[]}].
 - conjugation: Tabla de conjugación verbal. Usa 'verbs': [{name: string, rows: [{pronoun, verb, ending?}]}]. Pronombres: ich, du, er/sie/es, wir, ihr, sie/Sie.
@@ -76,13 +76,14 @@ const ELEMENT_ITEM_SCHEMA = {
     baseStyle: { type: 'string', description: 'Para title: h1/h2/h3. Para subtitle: h4/h5. Para unorderedList: ul/ol.' },
     gridId: { type: 'string' },
     gridCols: { type: 'number' },
-    list: { type: 'array', items: { type: 'object', properties: { baseStyle: { type: 'string' }, content: { type: 'string' } }, required: ['content'] } },
+    list: { type: 'array', items: { type: 'object', properties: { baseStyle: { type: 'string' }, text: { type: 'string' } }, required: ['text'] } },
     headers: { type: 'array', items: { type: 'string' } },
     rows: { type: 'array', items: { type: 'object' }, description: 'Para table: [{cells: string[]}]. Para dragDrop: [{before?, after?, answer}].' },
     verbs: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, rows: { type: 'array', items: { type: 'object', properties: { pronoun: { type: 'string' }, verb: { type: 'string' }, ending: { type: 'string' } }, required: ['pronoun', 'verb'] } } }, required: ['name', 'rows'] } },
     questions: { type: 'array', items: { type: 'object', properties: { question: { type: 'string' }, answer: { type: 'string' }, hint: { type: 'string' } }, required: ['question', 'answer'] } },
     words: { type: 'array', items: { type: 'string' } },
-    items: { type: 'array', items: { type: 'object', properties: { text: { type: 'string' }, label: { type: 'string' } }, required: ['text'] } }
+    items: { type: 'array', items: { type: 'object', properties: { text: { type: 'string' }, label: { type: 'string' } }, required: ['text'] } },
+    tipTitle: { type: 'string' }
   },
   required: ['type', 'order']
 };
@@ -148,6 +149,7 @@ const TOOLS: ChatCompletionTool[] = [
           verbs: { type: 'array', items: { type: 'object' } },
           questions: { type: 'array', items: { type: 'object' } },
           words: { type: 'array', items: { type: 'string' } },
+          tipTitle: { type: 'string' },
           items: { type: 'array', items: { type: 'object' } }
         },
         required: ['order']

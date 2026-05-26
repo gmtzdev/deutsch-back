@@ -24,12 +24,13 @@ import { DragDropRow } from './entities/drag-drop-row.entity';
 import { PronunciationBlock } from './entities/pronunciation-block.entity';
 import { PronunciationItem } from './entities/pronunciation-item.entity';
 import { AlphabetBlock } from './entities/alphabet-block.entity';
+import { Tip } from './entities/tip.entity';
 
 @Module({
   controllers: [ElementsController],
   providers: [ElementsService],
   imports: [
-    TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion, ImageBlock, DragDropExercise, DragDropRow, PronunciationBlock, PronunciationItem, AlphabetBlock]),
+    TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion, ImageBlock, DragDropExercise, DragDropRow, PronunciationBlock, PronunciationItem, AlphabetBlock, Tip]),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',

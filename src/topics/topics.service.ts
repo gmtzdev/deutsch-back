@@ -37,6 +37,6 @@ export class TopicsService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} topic`;
+    return this.topicRepository.softDelete(id);
   }
 }
