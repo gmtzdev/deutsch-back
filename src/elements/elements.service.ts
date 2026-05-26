@@ -32,6 +32,7 @@ import { PronunciationBlock } from './entities/pronunciation-block.entity';
 import { PronunciationItem } from './entities/pronunciation-item.entity';
 import { CreatePronunciationBlockDto } from './dto/pronunciation/create-pronunciation-block.dto';
 import { AlphabetBlock } from './entities/alphabet-block.entity';
+import { Tip } from './entities/tip.entity';
 
 @Injectable()
 export class ElementsService {
@@ -74,6 +75,8 @@ export class ElementsService {
     private readonly pronunciationItemRepository: Repository<PronunciationItem>,
     @InjectRepository(AlphabetBlock)
     private readonly alphabetBlockRepository: Repository<AlphabetBlock>,
+    @InjectRepository(Tip)
+    private readonly tipRepository: Repository<Tip>,
   ) { }
 
 
@@ -95,6 +98,7 @@ export class ElementsService {
         case 'pronunciationBlock': return this.handlePronunciationBlock(elementDto as CreatePronunciationBlockDto);
         case 'alphabetBlock': return this.handleAlphabetBlock(elementDto);
         case 'tag': return this.handleTag(elementDto as CreateElementDto);
+        case 'tip': return this.handleTip(elementDto as CreateElementDto);
         default: return this.handleElement(elementDto);
 
       }
@@ -158,6 +162,8 @@ export class ElementsService {
         return this.pronunciationBlockRepository.find({ where: { lesson: { id: lessonId } }, relations: ['items'] });
       case 'alphabetBlock':
         return this.alphabetBlockRepository.find({ where: { lesson: { id: lessonId } } });
+      case 'tip':
+        return this.tipRepository.find({ where: { lesson: { id: lessonId } } });
       default:
         return null;
     }
@@ -661,6 +667,34 @@ export class ElementsService {
     delete blockDto.id;
     return this.alphabetBlockRepository.save(
       this.alphabetBlockRepository.create(blockDto),
+    );
+  }
+
+  private async handleTip(tipDto: CreateElementDto) {
+    // Verify if the tip should be deleted
+    if (tipDto.delete) {
+      await this.tipRepository.delete({ id: tipDto.id });
+      return null;
+    }
+
+    // If the tip has an ID, it means we are updating an existing tip
+    if (tipDto.id > 0) {
+      const existingTip = await this.tipRepository.findOneBy({ id: tipDto.id }) as Tip;
+      const element = tipDto as CreateElementDto;
+      // Update the existing tip with new data
+      // existingTip.tipTitle = element.tipTitle;
+      existingTip.text = element.text;
+      existingTip.style = element.style;
+      existingTip.order = element.order;
+      existingTip.gridId = element.gridId ?? null;
+      existingTip.gridCols = element.gridCols ?? 1;
+      return this.tipRepository.save(existingTip);
+    }
+
+    // If the tip does not have an ID, we are creating a new tip
+    delete tipDto.id;
+    return this.tipRepository.save(
+      this.tipRepository.create(tipDto),
     );
   }
 }

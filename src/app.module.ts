@@ -34,6 +34,7 @@ import { AiModule } from './ai/ai.module';
 import { PronunciationBlock } from './elements/entities/pronunciation-block.entity';
 import { PronunciationItem } from './elements/entities/pronunciation-item.entity';
 import { AlphabetBlock } from './elements/entities/alphabet-block.entity';
+import { Tip } from './elements/entities/tip.entity';
 
 @Module({
   imports: [
@@ -71,7 +72,8 @@ import { AlphabetBlock } from './elements/entities/alphabet-block.entity';
         PronunciationBlock,
         PronunciationItem,
         AlphabetBlock,
-        User
+        User,
+        Tip
       ],
       synchronize: true,
     }),
