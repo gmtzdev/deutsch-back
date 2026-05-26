@@ -157,7 +157,13 @@ export class ElementsService {
       case 'quiz':
         return this.quizRepository.find({ where: { lesson: { id: lessonId } }, relations: ['questions'] });
       case 'dragDrop':
-        return this.dragDropRepository.find({ where: { lesson: { id: lessonId } }, relations: ['rows'] });
+        return this.dragDropRepository.find({
+          where: { lesson: { id: lessonId } }, relations: ['rows'], order: {
+            rows: {
+              id: 'ASC'  // o cualquier campo de DragDropRow
+            }
+          }
+        });
       case 'pronunciationBlock':
         return this.pronunciationBlockRepository.find({ where: { lesson: { id: lessonId } }, relations: ['items'] });
       case 'imageBlock':
