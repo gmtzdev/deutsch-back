@@ -166,8 +166,8 @@ export class ElementsService {
         });
       case 'pronunciationBlock':
         return this.pronunciationBlockRepository.find({ where: { lesson: { id: lessonId } }, relations: ['items'] });
-      case 'imageBlock':
-        return this.imageBlockRepository.find({ where: { lesson: { id: lessonId } } });
+      // case 'imageBlock':
+      //   return this.imageBlockRepository.find({ where: { lesson: { id: lessonId } } });
       case 'alphabetBlock':
         return this.alphabetBlockRepository.find({ where: { lesson: { id: lessonId } } });
       case 'tip':
