@@ -10,6 +10,6 @@ export class Table extends Element {
     @Column("simple-array", { nullable: true })
     headers: string[];
 
-    @OneToMany(() => TableRow, (row) => row.table, { cascade: true })
+    @OneToMany(() => TableRow, (row) => row.table)
     rows: TableRow[];
 }

@@ -8,6 +8,6 @@ export class DragDropExercise extends Element {
     @Column('simple-array', { nullable: true })
     words: string[];
 
-    @OneToMany(() => DragDropRow, (row) => row.exercise, { cascade: true })
+    @OneToMany(() => DragDropRow, (row) => row.exercise)
     rows: DragDropRow[];
 }

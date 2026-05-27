@@ -4,6 +4,6 @@ import { VerbData } from './verb-data.entity';
 
 @Entity()
 export class Conjugation extends Element {
-    @OneToMany(() => VerbData, (verb) => verb.conjugation, { cascade: true })
+    @OneToMany(() => VerbData, (verb) => verb.conjugation)
     verbs: VerbData[];
 }

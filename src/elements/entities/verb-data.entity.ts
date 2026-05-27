@@ -13,6 +13,6 @@ export class VerbData {
     @ManyToOne(() => Conjugation, (conjugation) => conjugation.verbs, { onDelete: 'CASCADE' })
     conjugation: Conjugation;
 
-    @OneToMany(() => ConjugationRow, (row) => row.verbData, { cascade: true })
+    @OneToMany(() => ConjugationRow, (row) => row.verbData)
     rows: ConjugationRow[];
 }
