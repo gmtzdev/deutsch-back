@@ -22,6 +22,9 @@ export class Subtopic {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @Column({ default: 0 })
+    order: number;
+
     @ManyToOne(() => Topic, (topic) => topic.subtopics, { nullable: true, onDelete: 'CASCADE' })
     topic: Topic;
 

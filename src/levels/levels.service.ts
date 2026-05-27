@@ -32,7 +32,7 @@ export class LevelsService {
       .leftJoinAndSelect('topic.subtopics', 'subtopic')
       .where('level.id = :id', { id })
       .orderBy('topic.id', 'ASC')
-      .addOrderBy('subtopic.id', 'ASC')
+      .addOrderBy('subtopic.order', 'ASC')
       .getOne();
   }
 
