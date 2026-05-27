@@ -419,7 +419,8 @@ export class ElementsService {
     ) as unknown as Table;
 
     for (const rowDto of tableDto.rows) {
-      const newRow = this.tableRowRepository.create(rowDto);
+      const row = { cells: rowDto.cells };
+      const newRow = this.tableRowRepository.create(row);
       newRow.table = table;
       await this.tableRowRepository.save(newRow);
     }
