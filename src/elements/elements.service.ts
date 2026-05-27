@@ -33,6 +33,9 @@ import { PronunciationItem } from './entities/pronunciation-item.entity';
 import { CreatePronunciationBlockDto } from './dto/pronunciation/create-pronunciation-block.dto';
 import { AlphabetBlock } from './entities/alphabet-block.entity';
 import { Tip } from './entities/tip.entity';
+import { FillBlankExercise } from './entities/fill-blank-exercise.entity';
+import { FillBlankRow } from './entities/fill-blank-row.entity';
+import { CreateFillBlankDto } from './dto/fill-blank/create-fill-blank.dto';
 
 @Injectable()
 export class ElementsService {
@@ -77,6 +80,10 @@ export class ElementsService {
     private readonly alphabetBlockRepository: Repository<AlphabetBlock>,
     @InjectRepository(Tip)
     private readonly tipRepository: Repository<Tip>,
+    @InjectRepository(FillBlankExercise)
+    private readonly fillBlankRepository: Repository<FillBlankExercise>,
+    @InjectRepository(FillBlankRow)
+    private readonly fillBlankRowRepository: Repository<FillBlankRow>,
   ) { }
 
 
@@ -101,6 +108,7 @@ export class ElementsService {
         case 'alphabetBlock': result = await this.handleAlphabetBlock(elementDto); break;
         case 'tag': result = await this.handleTag(elementDto as CreateElementDto); break;
         case 'tip': result = await this.handleTip(elementDto as CreateElementDto); break;
+        case 'fillBlank': result = await this.handleFillBlank(elementDto as CreateFillBlankDto); break;
         default: result = await this.handleElement(elementDto); break;
       }
       results.push(result);
@@ -174,6 +182,12 @@ export class ElementsService {
         return this.alphabetBlockRepository.find({ where: { lesson: { id: lessonId } } });
       case 'tip':
         return this.tipRepository.find({ where: { lesson: { id: lessonId } } });
+      case 'fillBlank':
+        return this.fillBlankRepository.find({
+          where: { lesson: { id: lessonId } },
+          relations: ['rows'],
+          order: { rows: { id: 'ASC' } },
+        });
       default:
         return null;
     }
@@ -713,5 +727,49 @@ export class ElementsService {
     return this.tipRepository.save(
       this.tipRepository.create(tipDto),
     );
+  }
+
+  private async handleFillBlank(dto: CreateFillBlankDto) {
+    // Delete
+    if (dto.delete) {
+      await this.fillBlankRowRepository.delete({ exercise: { id: dto.id } });
+      await this.fillBlankRepository.delete({ id: dto.id });
+      return null;
+    }
+
+    // Update
+    if (dto.id > 0) {
+      const existing = await this.fillBlankRepository.findOneBy({ id: dto.id });
+      if (!existing) return null;
+      existing.style = dto.style;
+      existing.order = dto.order;
+      existing.gridId = dto.gridId ?? null;
+      existing.gridCols = dto.gridCols ?? 1;
+      const updated = await this.fillBlankRepository.save(existing);
+
+      await this.fillBlankRowRepository.delete({ exercise: { id: existing.id } });
+      for (const rowDto of dto.rows) {
+        const row = this.fillBlankRowRepository.create({ ...rowDto, exercise: updated });
+        await this.fillBlankRowRepository.save(row);
+      }
+
+      return updated;
+    }
+
+    // Create
+    const exerciseDto = { ...dto } as any;
+    delete exerciseDto.id;
+    delete exerciseDto.rows;
+
+    const exercise = await this.fillBlankRepository.save(
+      this.fillBlankRepository.create(exerciseDto),
+    ) as unknown as FillBlankExercise;
+
+    for (const rowDto of dto.rows) {
+      const row = this.fillBlankRowRepository.create({ ...rowDto, exercise });
+      await this.fillBlankRowRepository.save(row);
+    }
+
+    return exercise;
   }
 }

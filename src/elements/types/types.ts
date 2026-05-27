@@ -23,9 +23,10 @@ import { ImageBlock } from "../entities/image-bock.entity";
 import { DragDropExercise } from "../entities/drag-drop-exercise.entity";
 import { PronunciationBlock } from "../entities/pronunciation-block.entity";
 import { AlphabetBlock } from "../entities/alphabet-block.entity";
+import { FillBlankExercise } from "../entities/fill-blank-exercise.entity";
 
 
 export type LessonElementDto = CreateElementDto | CreateTitleDto | CreateSubtitleDto | CreateListItemDto | CreateUnorderedListDto | CreateTableDto | CreateConjugationDto | CreateQuizDto | CreateImageBlockDto | CreateDragDropDto | CreatePronunciationBlockDto;
-export type ElementType = 'element' | 'title' | 'subtitle' | 'listItem' | 'unorderedList' | 'table' | 'tip' | 'tag' | 'conjugation' | 'quiz' | 'imageBlock' | 'dragDrop' | 'pronunciationBlock' | 'alphabetBlock';
-export type ElementTypeObj = Element | Title | Subtitle | ListItem | UnorderedList | Table | Tip | Tag | Conjugation | Quiz | ImageBlock | DragDropExercise | PronunciationBlock | AlphabetBlock;
-export const elementTypes: ElementType[] = ['element', 'title', 'subtitle', 'listItem', 'unorderedList', 'table', 'tip', 'tag', 'conjugation', 'quiz', 'imageBlock', 'dragDrop', 'pronunciationBlock', 'alphabetBlock'];
+export type ElementType = 'element' | 'title' | 'subtitle' | 'listItem' | 'unorderedList' | 'table' | 'tip' | 'tag' | 'conjugation' | 'quiz' | 'imageBlock' | 'dragDrop' | 'pronunciationBlock' | 'alphabetBlock' | 'fillBlank';
+export type ElementTypeObj = Element | Title | Subtitle | ListItem | UnorderedList | Table | Tip | Tag | Conjugation | Quiz | ImageBlock | DragDropExercise | PronunciationBlock | AlphabetBlock | FillBlankExercise;
+export const elementTypes: ElementType[] = ['element', 'title', 'subtitle', 'listItem', 'unorderedList', 'table', 'tip', 'tag', 'conjugation', 'quiz', 'imageBlock', 'dragDrop', 'pronunciationBlock', 'alphabetBlock', 'fillBlank'];
