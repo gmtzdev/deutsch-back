@@ -7,6 +7,6 @@ export class UnorderedList extends Element {
     @Column({ nullable: false, default: 'ul' })
     baseStyle: string;
 
-    @OneToMany(() => ListItem, (listItem) => listItem.ul, { cascade: true })
+    @OneToMany(() => ListItem, (listItem) => listItem.ul)
     list: ListItem[];
 }

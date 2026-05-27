@@ -35,6 +35,8 @@ import { PronunciationBlock } from './elements/entities/pronunciation-block.enti
 import { PronunciationItem } from './elements/entities/pronunciation-item.entity';
 import { AlphabetBlock } from './elements/entities/alphabet-block.entity';
 import { Tip } from './elements/entities/tip.entity';
+import { FillBlankExercise } from './elements/entities/fill-blank-exercise.entity';
+import { FillBlankRow } from './elements/entities/fill-blank-row.entity';
 
 @Module({
   imports: [
@@ -73,7 +75,9 @@ import { Tip } from './elements/entities/tip.entity';
         PronunciationItem,
         AlphabetBlock,
         User,
-        Tip
+        Tip,
+        FillBlankExercise,
+        FillBlankRow
       ],
       synchronize: true,
     }),
