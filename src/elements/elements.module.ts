@@ -27,12 +27,14 @@ import { AlphabetBlock } from './entities/alphabet-block.entity';
 import { Tip } from './entities/tip.entity';
 import { FillBlankExercise } from './entities/fill-blank-exercise.entity';
 import { FillBlankRow } from './entities/fill-blank-row.entity';
+import { FillBlankTableExercise } from './entities/fill-blank-table.entity';
+import { FillBlankTableRow } from './entities/fill-blank-table-row.entity';
 
 @Module({
   controllers: [ElementsController],
   providers: [ElementsService],
   imports: [
-    TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion, ImageBlock, DragDropExercise, DragDropRow, PronunciationBlock, PronunciationItem, AlphabetBlock, Tip, FillBlankExercise, FillBlankRow]),
+    TypeOrmModule.forFeature([Element, Title, Subtitle, ListItem, UnorderedList, Tag, Table, TableRow, Conjugation, VerbData, ConjugationRow, Quiz, QuizQuestion, ImageBlock, DragDropExercise, DragDropRow, PronunciationBlock, PronunciationItem, AlphabetBlock, Tip, FillBlankExercise, FillBlankRow, FillBlankTableExercise, FillBlankTableRow]),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',

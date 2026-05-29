@@ -36,6 +36,9 @@ import { Tip } from './entities/tip.entity';
 import { FillBlankExercise } from './entities/fill-blank-exercise.entity';
 import { FillBlankRow } from './entities/fill-blank-row.entity';
 import { CreateFillBlankDto } from './dto/fill-blank/create-fill-blank.dto';
+import { FillBlankTableExercise } from './entities/fill-blank-table.entity';
+import { FillBlankTableRow } from './entities/fill-blank-table-row.entity';
+import { CreateFillBlankTableDto } from './dto/fill-blank/create-fill-blank-table.dto';
 
 @Injectable()
 export class ElementsService {
@@ -84,6 +87,10 @@ export class ElementsService {
     private readonly fillBlankRepository: Repository<FillBlankExercise>,
     @InjectRepository(FillBlankRow)
     private readonly fillBlankRowRepository: Repository<FillBlankRow>,
+    @InjectRepository(FillBlankTableExercise)
+    private readonly fillBlankTableRepository: Repository<FillBlankTableExercise>,
+    @InjectRepository(FillBlankTableRow)
+    private readonly fillBlankTableRowRepository: Repository<FillBlankTableRow>,
   ) { }
 
 
@@ -109,6 +116,7 @@ export class ElementsService {
         case 'tag': result = await this.handleTag(elementDto as CreateElementDto); break;
         case 'tip': result = await this.handleTip(elementDto as CreateElementDto); break;
         case 'fillBlank': result = await this.handleFillBlank(elementDto as CreateFillBlankDto); break;
+        case 'fillBlankTable': result = await this.handleFillBlankTable(elementDto as CreateFillBlankTableDto); break;
         default: result = await this.handleElement(elementDto); break;
       }
       results.push(result);
@@ -184,6 +192,12 @@ export class ElementsService {
         return this.tipRepository.find({ where: { lesson: { id: lessonId } } });
       case 'fillBlank':
         return this.fillBlankRepository.find({
+          where: { lesson: { id: lessonId } },
+          relations: ['rows'],
+          order: { rows: { id: 'ASC' } },
+        });
+      case 'fillBlankTable':
+        return this.fillBlankTableRepository.find({
           where: { lesson: { id: lessonId } },
           relations: ['rows'],
           order: { rows: { id: 'ASC' } },
@@ -586,48 +600,89 @@ export class ElementsService {
   }
 
   private async handleDragDrop(dragDropDto: CreateDragDropDto) {
+    if (!Array.isArray(dragDropDto.rows)) {
+      throw new Error('dragDrop.rows must be an array');
+    }
+
     // Delete
     if (dragDropDto.delete) {
-      await this.dragDropRowRepository.delete({ exercise: { id: dragDropDto.id } });
-      await this.dragDropRepository.delete({ id: dragDropDto.id });
+      await this.dragDropRepository.manager.transaction(async (manager) => {
+        const rowRepo = manager.getRepository(DragDropRow);
+        const exerciseRepo = manager.getRepository(DragDropExercise);
+        await rowRepo.delete({ exercise: { id: dragDropDto.id } });
+        await exerciseRepo.delete({ id: dragDropDto.id });
+      });
       return null;
     }
 
     // Update
     if (dragDropDto.id > 0) {
-      const existing = await this.dragDropRepository.findOneBy({ id: dragDropDto.id });
-      if (!existing) return null;
-      existing.style = dragDropDto.style;
-      existing.words = dragDropDto.words;
-      existing.order = dragDropDto.order;
-      existing.gridId = dragDropDto.gridId ?? null;
-      existing.gridCols = dragDropDto.gridCols ?? 1;
-      const updated = await this.dragDropRepository.save(existing);
+      return this.dragDropRepository.manager.transaction(async (manager) => {
+        const exerciseRepo = manager.getRepository(DragDropExercise);
+        const rowRepo = manager.getRepository(DragDropRow);
 
-      await this.dragDropRowRepository.delete({ exercise: { id: existing.id } });
-      for (const rowDto of dragDropDto.rows) {
-        const row = this.dragDropRowRepository.create({ ...rowDto, exercise: updated });
-        await this.dragDropRowRepository.save(row);
-      }
+        const existing = await exerciseRepo.findOneBy({ id: dragDropDto.id });
+        if (!existing) return null;
 
-      return updated;
+        existing.style = dragDropDto.style;
+        existing.words = dragDropDto.words;
+        existing.order = dragDropDto.order;
+        existing.gridId = dragDropDto.gridId ?? null;
+        existing.gridCols = dragDropDto.gridCols ?? 1;
+        const updated = await exerciseRepo.save(existing);
+
+        const existingRows = await rowRepo.find({ where: { exercise: { id: existing.id } } });
+        const existingMap = new Map(existingRows.map((row) => [row.id, row]));
+        const incomingIds = new Set<number>();
+
+        for (const rowDto of dragDropDto.rows) {
+          if (rowDto.id && existingMap.has(rowDto.id)) {
+            incomingIds.add(rowDto.id);
+            const row = existingMap.get(rowDto.id) as DragDropRow;
+            row.before = rowDto.before;
+            row.after = rowDto.after;
+            row.answer = rowDto.answer;
+            await rowRepo.save(row);
+          } else {
+            const row = rowRepo.create({ ...rowDto, exercise: updated });
+            delete row.id;
+            await rowRepo.save(row);
+          }
+        }
+
+        const rowIdsToDelete = existingRows
+          .filter((row) => !incomingIds.has(row.id))
+          .map((row) => row.id);
+
+        if (rowIdsToDelete.length > 0) {
+          await rowRepo.delete(rowIdsToDelete);
+        }
+
+        return updated;
+      });
     }
 
     // Create
-    const dto = { ...dragDropDto } as any;
-    delete dto.id;
-    delete dto.rows;
+    return this.dragDropRepository.manager.transaction(async (manager) => {
+      const exerciseRepo = manager.getRepository(DragDropExercise);
+      const rowRepo = manager.getRepository(DragDropRow);
 
-    const exercise = await this.dragDropRepository.save(
-      this.dragDropRepository.create(dto),
-    ) as unknown as DragDropExercise;
+      const dto = { ...dragDropDto } as any;
+      delete dto.id;
+      delete dto.rows;
 
-    for (const rowDto of dragDropDto.rows) {
-      const row = this.dragDropRowRepository.create({ ...rowDto, exercise });
-      await this.dragDropRowRepository.save(row);
-    }
+      const exercise = await exerciseRepo.save(
+        exerciseRepo.create(dto),
+      ) as unknown as DragDropExercise;
 
-    return exercise;
+      for (const rowDto of dragDropDto.rows) {
+        const row = rowRepo.create({ ...rowDto, exercise });
+        delete row.id;
+        await rowRepo.save(row);
+      }
+
+      return exercise;
+    });
   }
 
   private async handlePronunciationBlock(dto: CreatePronunciationBlockDto) {
@@ -769,6 +824,54 @@ export class ElementsService {
     for (const rowDto of dto.rows) {
       const row = this.fillBlankRowRepository.create({ ...rowDto, exercise });
       await this.fillBlankRowRepository.save(row);
+    }
+
+    return exercise;
+  }
+
+  private async handleFillBlankTable(dto: CreateFillBlankTableDto) {
+    // Delete
+    if (dto.delete) {
+      await this.fillBlankTableRowRepository.delete({ exercise: { id: dto.id } });
+      await this.fillBlankTableRepository.delete({ id: dto.id });
+      return null;
+    }
+
+    // Update
+    if (dto.id > 0) {
+      const existing = await this.fillBlankTableRepository.findOneBy({ id: dto.id });
+      if (!existing) return null;
+      existing.style = dto.style;
+      existing.baseStyle = dto.baseStyle;
+      existing.headers = dto.headers;
+      existing.order = dto.order;
+      existing.gridId = dto.gridId ?? null;
+      existing.gridCols = dto.gridCols ?? 1;
+      const updated = await this.fillBlankTableRepository.save(existing);
+
+      await this.fillBlankTableRowRepository.delete({ exercise: { id: existing.id } });
+      for (const rowDto of dto.rows) {
+        const row = this.fillBlankTableRowRepository.create({ ...rowDto, exercise: updated });
+        delete row.id;
+        await this.fillBlankTableRowRepository.save(row);
+      }
+
+      return updated;
+    }
+
+    // Create
+    const exerciseDto = { ...dto } as any;
+    delete exerciseDto.id;
+    delete exerciseDto.rows;
+
+    const exercise = await this.fillBlankTableRepository.save(
+      this.fillBlankTableRepository.create(exerciseDto),
+    ) as unknown as FillBlankTableExercise;
+
+    for (const rowDto of dto.rows) {
+      const row = this.fillBlankTableRowRepository.create({ ...rowDto, exercise });
+      delete row.id;
+      await this.fillBlankTableRowRepository.save(row);
     }
 
     return exercise;

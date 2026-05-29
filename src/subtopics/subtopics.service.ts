@@ -7,6 +7,7 @@ import { Subtopic } from './entities/subtopic.entity';
 import { elementTypes } from 'src/elements/types/types';
 import { ElementsService } from 'src/elements/elements.service';
 import { LessonsService } from 'src/lessons/lessons.service';
+import { ReorderSubtopicDto } from './dto/reorder-subtopic.dto';
 
 @Injectable()
 export class SubtopicsService {
@@ -49,6 +50,17 @@ export class SubtopicsService {
   update(id: number, updateSubtopicDto: UpdateSubtopicDto) {
     const subtopic = this.subtopicRepository.create({ id, ...updateSubtopicDto });
     return this.subtopicRepository.save(subtopic);
+  }
+
+  async reorder(subtopics: ReorderSubtopicDto[]) {
+    for (const subtopicDto of subtopics) {
+      const subtopic = await this.subtopicRepository.findOneBy({ id: subtopicDto.id });
+      if (subtopic) {
+        subtopic.order = subtopicDto.order;
+        await this.subtopicRepository.save(subtopic);
+      }
+    }
+    return { message: 'Subtopics reordered successfully' };
   }
 
   remove(id: number) {
