@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateDragDropRowDto {
+    @ApiPropertyOptional({ example: 12 })
+    id?: number;
+
     @ApiPropertyOptional({ example: 'Ich' })
     before?: string;
 

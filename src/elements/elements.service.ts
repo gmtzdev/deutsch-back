@@ -600,48 +600,89 @@ export class ElementsService {
   }
 
   private async handleDragDrop(dragDropDto: CreateDragDropDto) {
+    if (!Array.isArray(dragDropDto.rows)) {
+      throw new Error('dragDrop.rows must be an array');
+    }
+
     // Delete
     if (dragDropDto.delete) {
-      await this.dragDropRowRepository.delete({ exercise: { id: dragDropDto.id } });
-      await this.dragDropRepository.delete({ id: dragDropDto.id });
+      await this.dragDropRepository.manager.transaction(async (manager) => {
+        const rowRepo = manager.getRepository(DragDropRow);
+        const exerciseRepo = manager.getRepository(DragDropExercise);
+        await rowRepo.delete({ exercise: { id: dragDropDto.id } });
+        await exerciseRepo.delete({ id: dragDropDto.id });
+      });
       return null;
     }
 
     // Update
     if (dragDropDto.id > 0) {
-      const existing = await this.dragDropRepository.findOneBy({ id: dragDropDto.id });
-      if (!existing) return null;
-      existing.style = dragDropDto.style;
-      existing.words = dragDropDto.words;
-      existing.order = dragDropDto.order;
-      existing.gridId = dragDropDto.gridId ?? null;
-      existing.gridCols = dragDropDto.gridCols ?? 1;
-      const updated = await this.dragDropRepository.save(existing);
+      return this.dragDropRepository.manager.transaction(async (manager) => {
+        const exerciseRepo = manager.getRepository(DragDropExercise);
+        const rowRepo = manager.getRepository(DragDropRow);
 
-      await this.dragDropRowRepository.delete({ exercise: { id: existing.id } });
-      for (const rowDto of dragDropDto.rows) {
-        const row = this.dragDropRowRepository.create({ ...rowDto, exercise: updated });
-        await this.dragDropRowRepository.save(row);
-      }
+        const existing = await exerciseRepo.findOneBy({ id: dragDropDto.id });
+        if (!existing) return null;
 
-      return updated;
+        existing.style = dragDropDto.style;
+        existing.words = dragDropDto.words;
+        existing.order = dragDropDto.order;
+        existing.gridId = dragDropDto.gridId ?? null;
+        existing.gridCols = dragDropDto.gridCols ?? 1;
+        const updated = await exerciseRepo.save(existing);
+
+        const existingRows = await rowRepo.find({ where: { exercise: { id: existing.id } } });
+        const existingMap = new Map(existingRows.map((row) => [row.id, row]));
+        const incomingIds = new Set<number>();
+
+        for (const rowDto of dragDropDto.rows) {
+          if (rowDto.id && existingMap.has(rowDto.id)) {
+            incomingIds.add(rowDto.id);
+            const row = existingMap.get(rowDto.id) as DragDropRow;
+            row.before = rowDto.before;
+            row.after = rowDto.after;
+            row.answer = rowDto.answer;
+            await rowRepo.save(row);
+          } else {
+            const row = rowRepo.create({ ...rowDto, exercise: updated });
+            delete row.id;
+            await rowRepo.save(row);
+          }
+        }
+
+        const rowIdsToDelete = existingRows
+          .filter((row) => !incomingIds.has(row.id))
+          .map((row) => row.id);
+
+        if (rowIdsToDelete.length > 0) {
+          await rowRepo.delete(rowIdsToDelete);
+        }
+
+        return updated;
+      });
     }
 
     // Create
-    const dto = { ...dragDropDto } as any;
-    delete dto.id;
-    delete dto.rows;
+    return this.dragDropRepository.manager.transaction(async (manager) => {
+      const exerciseRepo = manager.getRepository(DragDropExercise);
+      const rowRepo = manager.getRepository(DragDropRow);
 
-    const exercise = await this.dragDropRepository.save(
-      this.dragDropRepository.create(dto),
-    ) as unknown as DragDropExercise;
+      const dto = { ...dragDropDto } as any;
+      delete dto.id;
+      delete dto.rows;
 
-    for (const rowDto of dragDropDto.rows) {
-      const row = this.dragDropRowRepository.create({ ...rowDto, exercise });
-      await this.dragDropRowRepository.save(row);
-    }
+      const exercise = await exerciseRepo.save(
+        exerciseRepo.create(dto),
+      ) as unknown as DragDropExercise;
 
-    return exercise;
+      for (const rowDto of dragDropDto.rows) {
+        const row = rowRepo.create({ ...rowDto, exercise });
+        delete row.id;
+        await rowRepo.save(row);
+      }
+
+      return exercise;
+    });
   }
 
   private async handlePronunciationBlock(dto: CreatePronunciationBlockDto) {
