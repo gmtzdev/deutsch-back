@@ -37,6 +37,8 @@ import { AlphabetBlock } from './elements/entities/alphabet-block.entity';
 import { Tip } from './elements/entities/tip.entity';
 import { FillBlankExercise } from './elements/entities/fill-blank-exercise.entity';
 import { FillBlankRow } from './elements/entities/fill-blank-row.entity';
+import { FillBlankTableExercise } from './elements/entities/fill-blank-table.entity';
+import { FillBlankTableRow } from './elements/entities/fill-blank-table-row.entity';
 
 @Module({
   imports: [
@@ -77,7 +79,9 @@ import { FillBlankRow } from './elements/entities/fill-blank-row.entity';
         User,
         Tip,
         FillBlankExercise,
-        FillBlankRow
+        FillBlankRow,
+        FillBlankTableExercise,
+        FillBlankTableRow
       ],
       synchronize: true,
     }),

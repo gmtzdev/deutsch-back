@@ -36,6 +36,9 @@ import { Tip } from './entities/tip.entity';
 import { FillBlankExercise } from './entities/fill-blank-exercise.entity';
 import { FillBlankRow } from './entities/fill-blank-row.entity';
 import { CreateFillBlankDto } from './dto/fill-blank/create-fill-blank.dto';
+import { FillBlankTableExercise } from './entities/fill-blank-table.entity';
+import { FillBlankTableRow } from './entities/fill-blank-table-row.entity';
+import { CreateFillBlankTableDto } from './dto/fill-blank/create-fill-blank-table.dto';
 
 @Injectable()
 export class ElementsService {
@@ -84,6 +87,10 @@ export class ElementsService {
     private readonly fillBlankRepository: Repository<FillBlankExercise>,
     @InjectRepository(FillBlankRow)
     private readonly fillBlankRowRepository: Repository<FillBlankRow>,
+    @InjectRepository(FillBlankTableExercise)
+    private readonly fillBlankTableRepository: Repository<FillBlankTableExercise>,
+    @InjectRepository(FillBlankTableRow)
+    private readonly fillBlankTableRowRepository: Repository<FillBlankTableRow>,
   ) { }
 
 
@@ -109,6 +116,7 @@ export class ElementsService {
         case 'tag': result = await this.handleTag(elementDto as CreateElementDto); break;
         case 'tip': result = await this.handleTip(elementDto as CreateElementDto); break;
         case 'fillBlank': result = await this.handleFillBlank(elementDto as CreateFillBlankDto); break;
+        case 'fillBlankTable': result = await this.handleFillBlankTable(elementDto as CreateFillBlankTableDto); break;
         default: result = await this.handleElement(elementDto); break;
       }
       results.push(result);
@@ -184,6 +192,12 @@ export class ElementsService {
         return this.tipRepository.find({ where: { lesson: { id: lessonId } } });
       case 'fillBlank':
         return this.fillBlankRepository.find({
+          where: { lesson: { id: lessonId } },
+          relations: ['rows'],
+          order: { rows: { id: 'ASC' } },
+        });
+      case 'fillBlankTable':
+        return this.fillBlankTableRepository.find({
           where: { lesson: { id: lessonId } },
           relations: ['rows'],
           order: { rows: { id: 'ASC' } },
@@ -769,6 +783,54 @@ export class ElementsService {
     for (const rowDto of dto.rows) {
       const row = this.fillBlankRowRepository.create({ ...rowDto, exercise });
       await this.fillBlankRowRepository.save(row);
+    }
+
+    return exercise;
+  }
+
+  private async handleFillBlankTable(dto: CreateFillBlankTableDto) {
+    // Delete
+    if (dto.delete) {
+      await this.fillBlankTableRowRepository.delete({ exercise: { id: dto.id } });
+      await this.fillBlankTableRepository.delete({ id: dto.id });
+      return null;
+    }
+
+    // Update
+    if (dto.id > 0) {
+      const existing = await this.fillBlankTableRepository.findOneBy({ id: dto.id });
+      if (!existing) return null;
+      existing.style = dto.style;
+      existing.baseStyle = dto.baseStyle;
+      existing.headers = dto.headers;
+      existing.order = dto.order;
+      existing.gridId = dto.gridId ?? null;
+      existing.gridCols = dto.gridCols ?? 1;
+      const updated = await this.fillBlankTableRepository.save(existing);
+
+      await this.fillBlankTableRowRepository.delete({ exercise: { id: existing.id } });
+      for (const rowDto of dto.rows) {
+        const row = this.fillBlankTableRowRepository.create({ ...rowDto, exercise: updated });
+        delete row.id;
+        await this.fillBlankTableRowRepository.save(row);
+      }
+
+      return updated;
+    }
+
+    // Create
+    const exerciseDto = { ...dto } as any;
+    delete exerciseDto.id;
+    delete exerciseDto.rows;
+
+    const exercise = await this.fillBlankTableRepository.save(
+      this.fillBlankTableRepository.create(exerciseDto),
+    ) as unknown as FillBlankTableExercise;
+
+    for (const rowDto of dto.rows) {
+      const row = this.fillBlankTableRowRepository.create({ ...rowDto, exercise });
+      delete row.id;
+      await this.fillBlankTableRowRepository.save(row);
     }
 
     return exercise;
