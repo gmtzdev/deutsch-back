@@ -57,6 +57,7 @@ export class SubtopicsService {
       const subtopic = await this.subtopicRepository.findOneBy({ id: subtopicDto.id });
       if (subtopic) {
         subtopic.order = subtopicDto.order;
+        subtopic.topic = { id: subtopicDto.topicId } as any; // Only set the ID to avoid fetching the entire topic
         await this.subtopicRepository.save(subtopic);
       }
     }
