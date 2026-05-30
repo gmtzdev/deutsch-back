@@ -20,7 +20,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
     ) { }
 
-    async register(registerDto: RegisterDto): Promise<{ access_token: string }> {
+    async register(registerDto: RegisterDto): Promise<boolean> {
         const existingUser = await this.userRepository.findOne({
             where: { email: registerDto.email },
         });
@@ -34,10 +34,14 @@ export class AuthService {
         const user = this.userRepository.create({
             ...registerDto,
             password: hashedPassword,
+            verified: false,
         });
 
         const savedUser = await this.userRepository.save(user);
-        return this.generateToken(savedUser);
+        if (!savedUser) {
+            throw new ConflictException('Error al registrar el usuario');
+        }
+        return true;
     }
 
     async login(loginDto: LoginDto): Promise<LoginResponse> {
