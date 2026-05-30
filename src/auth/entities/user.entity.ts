@@ -1,10 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '../enum/user-rol.enum';
 
-export enum UserRole {
-    ADMIN = 'admin',
-    USER = 'user',
-}
+
 
 @Entity('users')
 export class User {
