@@ -6,6 +6,7 @@ import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginResponse } from './dto/LoginResponse.dto';
 import { User } from './entities/user.entity';
+import { RegisterResponse } from './dto/RegisterResponse.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -15,10 +16,12 @@ export class AuthController {
     @Post('register')
     @ApiOperation({ summary: 'Registrar nuevo usuario' })
     @ApiBody({ type: RegisterDto })
-    @ApiResponse({ status: 201, description: 'Usuario registrado correctamente.', type: LoginResponse })
+    @ApiResponse({ status: 201, description: 'Usuario registrado correctamente.', type: RegisterResponse })
     @ApiResponse({ status: 409, description: 'El email ya está registrado.' })
-    register(@Body() registerDto: RegisterDto) {
-        return this.authService.register(registerDto);
+    async register(@Body() registerDto: RegisterDto): Promise<RegisterResponse> {
+        const result = await this.authService.register(registerDto);
+        let response: RegisterResponse = { success: result, error: result ? undefined : 'Error al registrar el usuario' };
+        return response;
     }
 
     @Post('login')

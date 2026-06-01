@@ -18,7 +18,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
-import { User, UserRole } from '../auth/entities/user.entity';
+import { User } from '../auth/entities/user.entity';
+import { UserRole } from 'src/auth/enum/user-rol.enum';
 
 @ApiTags('users')
 @ApiBearerAuth()

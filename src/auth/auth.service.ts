@@ -20,7 +20,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
     ) { }
 
-    async register(registerDto: RegisterDto): Promise<{ access_token: string }> {
+    async register(registerDto: RegisterDto): Promise<boolean> {
         const existingUser = await this.userRepository.findOne({
             where: { email: registerDto.email },
         });
@@ -34,20 +34,28 @@ export class AuthService {
         const user = this.userRepository.create({
             ...registerDto,
             password: hashedPassword,
+            verified: false,
         });
 
         const savedUser = await this.userRepository.save(user);
-        return this.generateToken(savedUser);
+        if (!savedUser) {
+            throw new ConflictException('Error al registrar el usuario');
+        }
+        return true;
     }
 
     async login(loginDto: LoginDto): Promise<LoginResponse> {
         const user = await this.userRepository.findOne({
-            select: ['id', 'name', 'role', 'password'],
+            select: ['id', 'name', 'role', 'password', 'verified'],
             where: { email: loginDto.email },
         });
 
         if (!user) {
             throw new UnauthorizedException('Credenciales inválidas');
+        }
+
+        if (!user.verified) {
+            throw new UnauthorizedException('El usuario no ha sido verificado', 'USER_NOT_VERIFIED');
         }
 
         const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
