@@ -46,12 +46,16 @@ export class AuthService {
 
     async login(loginDto: LoginDto): Promise<LoginResponse> {
         const user = await this.userRepository.findOne({
-            select: ['id', 'name', 'role', 'password'],
+            select: ['id', 'name', 'role', 'password', 'verified'],
             where: { email: loginDto.email },
         });
 
         if (!user) {
             throw new UnauthorizedException('Credenciales inválidas');
+        }
+
+        if (!user.verified) {
+            throw new UnauthorizedException('El usuario no ha sido verificado', 'USER_NOT_VERIFIED');
         }
 
         const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
