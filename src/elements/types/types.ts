@@ -10,6 +10,8 @@ import { CreateImageBlockDto } from "../dto/image-block/create-image-block.dto";
 import { CreateDragDropDto } from "../dto/drag-drop/create-drag-drop.dto";
 import { CreatePronunciationBlockDto } from "../dto/pronunciation/create-pronunciation-block.dto";
 import { CreateFillBlankTableDto } from "../dto/fill-blank/create-fill-blank-table.dto";
+import { CreateTextQuestionDto } from "../dto/text-question/create-text-question.dto";
+import { CreateMultipleChoiceDto } from "../dto/multiple-choice/create-multiple-choice.dto";
 import { Element } from "../entities/element.entity";
 import { ListItem } from "../entities/listitem.entity";
 import { Subtitle } from "../entities/subtitle.entity";
@@ -26,9 +28,11 @@ import { PronunciationBlock } from "../entities/pronunciation-block.entity";
 import { AlphabetBlock } from "../entities/alphabet-block.entity";
 import { FillBlankExercise } from "../entities/fill-blank-exercise.entity";
 import { FillBlankTableExercise } from "../entities/fill-blank-table.entity";
+import { TextQuestionExercise } from "../entities/text-question-exercise.entity";
+import { MultipleChoiceExercise } from "../entities/multiple-choice-exercise.entity";
 
 
-export type LessonElementDto = CreateElementDto | CreateTitleDto | CreateSubtitleDto | CreateListItemDto | CreateUnorderedListDto | CreateTableDto | CreateConjugationDto | CreateQuizDto | CreateImageBlockDto | CreateDragDropDto | CreatePronunciationBlockDto | CreateFillBlankTableDto;
-export type ElementType = 'element' | 'title' | 'subtitle' | 'listItem' | 'unorderedList' | 'table' | 'tip' | 'tag' | 'conjugation' | 'quiz' | 'imageBlock' | 'dragDrop' | 'pronunciationBlock' | 'alphabetBlock' | 'fillBlank' | 'fillBlankTable';
-export type ElementTypeObj = Element | Title | Subtitle | ListItem | UnorderedList | Table | Tip | Tag | Conjugation | Quiz | ImageBlock | DragDropExercise | PronunciationBlock | AlphabetBlock | FillBlankExercise | FillBlankTableExercise;
-export const elementTypes: ElementType[] = ['element', 'title', 'subtitle', 'listItem', 'unorderedList', 'table', 'tip', 'tag', 'conjugation', 'quiz', 'imageBlock', 'dragDrop', 'pronunciationBlock', 'alphabetBlock', 'fillBlank', 'fillBlankTable'];
+export type LessonElementDto = CreateElementDto | CreateTitleDto | CreateSubtitleDto | CreateListItemDto | CreateUnorderedListDto | CreateTableDto | CreateConjugationDto | CreateQuizDto | CreateImageBlockDto | CreateDragDropDto | CreatePronunciationBlockDto | CreateFillBlankTableDto | CreateTextQuestionDto | CreateMultipleChoiceDto;
+export type ElementType = 'element' | 'title' | 'subtitle' | 'listItem' | 'unorderedList' | 'table' | 'tip' | 'tag' | 'conjugation' | 'quiz' | 'imageBlock' | 'dragDrop' | 'pronunciationBlock' | 'alphabetBlock' | 'fillBlank' | 'fillBlankTable' | 'textQuestion' | 'multipleChoice';
+export type ElementTypeObj = Element | Title | Subtitle | ListItem | UnorderedList | Table | Tip | Tag | Conjugation | Quiz | ImageBlock | DragDropExercise | PronunciationBlock | AlphabetBlock | FillBlankExercise | FillBlankTableExercise | TextQuestionExercise | MultipleChoiceExercise;
+export const elementTypes: ElementType[] = ['element', 'title', 'subtitle', 'listItem', 'unorderedList', 'table', 'tip', 'tag', 'conjugation', 'quiz', 'imageBlock', 'dragDrop', 'pronunciationBlock', 'alphabetBlock', 'fillBlank', 'fillBlankTable', 'textQuestion', 'multipleChoice'];

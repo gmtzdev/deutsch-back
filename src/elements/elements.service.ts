@@ -39,6 +39,12 @@ import { CreateFillBlankDto } from './dto/fill-blank/create-fill-blank.dto';
 import { FillBlankTableExercise } from './entities/fill-blank-table.entity';
 import { FillBlankTableRow } from './entities/fill-blank-table-row.entity';
 import { CreateFillBlankTableDto } from './dto/fill-blank/create-fill-blank-table.dto';
+import { TextQuestionExercise } from './entities/text-question-exercise.entity';
+import { TextQuestionItem } from './entities/text-question-item.entity';
+import { CreateTextQuestionDto } from './dto/text-question/create-text-question.dto';
+import { MultipleChoiceExercise } from './entities/multiple-choice-exercise.entity';
+import { MultipleChoiceQuestion } from './entities/multiple-choice-question.entity';
+import { CreateMultipleChoiceDto } from './dto/multiple-choice/create-multiple-choice.dto';
 
 @Injectable()
 export class ElementsService {
@@ -91,6 +97,14 @@ export class ElementsService {
     private readonly fillBlankTableRepository: Repository<FillBlankTableExercise>,
     @InjectRepository(FillBlankTableRow)
     private readonly fillBlankTableRowRepository: Repository<FillBlankTableRow>,
+    @InjectRepository(TextQuestionExercise)
+    private readonly textQuestionRepository: Repository<TextQuestionExercise>,
+    @InjectRepository(TextQuestionItem)
+    private readonly textQuestionItemRepository: Repository<TextQuestionItem>,
+    @InjectRepository(MultipleChoiceExercise)
+    private readonly multipleChoiceRepository: Repository<MultipleChoiceExercise>,
+    @InjectRepository(MultipleChoiceQuestion)
+    private readonly multipleChoiceQuestionRepository: Repository<MultipleChoiceQuestion>,
   ) { }
 
 
@@ -117,6 +131,8 @@ export class ElementsService {
         case 'tip': result = await this.handleTip(elementDto as CreateElementDto); break;
         case 'fillBlank': result = await this.handleFillBlank(elementDto as CreateFillBlankDto); break;
         case 'fillBlankTable': result = await this.handleFillBlankTable(elementDto as CreateFillBlankTableDto); break;
+        case 'textQuestion': result = await this.handleTextQuestion(elementDto as CreateTextQuestionDto); break;
+        case 'multipleChoice': result = await this.handleMultipleChoice(elementDto as CreateMultipleChoiceDto); break;
         default: result = await this.handleElement(elementDto); break;
       }
       results.push(result);
@@ -144,7 +160,7 @@ export class ElementsService {
     return `This action removes a #${id} element`;
   }
 
-  getElementsByLessonId(lessonId: number, type: string) {
+  async getElementsByLessonId(lessonId: number, type: string) {
     switch (type) {
       case 'element':
         return this.elementRepository.find({ where: { lesson: { id: lessonId } } });
@@ -202,6 +218,24 @@ export class ElementsService {
           relations: ['rows'],
           order: { rows: { id: 'ASC' } },
         });
+      case 'textQuestion':
+        return this.textQuestionRepository.find({
+          where: { lesson: { id: lessonId } },
+          relations: ['questions'],
+          order: { questions: { id: 'ASC' } },
+        });
+      case 'multipleChoice':
+        const mc = await this.multipleChoiceRepository.find({
+          where: { lesson: { id: lessonId } },
+          relations: ['questions'],
+          order: { questions: { id: 'ASC' } },
+        });
+        for (const exer of mc) {
+          for (const q of exer.questions) {
+            q.options = JSON.parse(q.options);
+          }
+        }
+        return mc;
       default:
         return null;
     }
@@ -875,5 +909,176 @@ export class ElementsService {
     }
 
     return exercise;
+  }
+
+  private async handleTextQuestion(dto: CreateTextQuestionDto) {
+    if (!Array.isArray(dto.questions)) {
+      throw new Error('textQuestion.questions must be an array');
+    }
+
+    // Delete
+    if (dto.delete) {
+      await this.textQuestionRepository.manager.transaction(async (manager) => {
+        const itemRepo = manager.getRepository(TextQuestionItem);
+        const exerciseRepo = manager.getRepository(TextQuestionExercise);
+        await itemRepo.delete({ exercise: { id: dto.id } });
+        await exerciseRepo.delete({ id: dto.id });
+      });
+      return null;
+    }
+
+    // Update
+    if (dto.id > 0) {
+      return this.textQuestionRepository.manager.transaction(async (manager) => {
+        const exerciseRepo = manager.getRepository(TextQuestionExercise);
+        const itemRepo = manager.getRepository(TextQuestionItem);
+
+        const existing = await exerciseRepo.findOneBy({ id: dto.id });
+        if (!existing) return null;
+
+        existing.style = dto.style;
+        existing.text = dto.text;
+        existing.order = dto.order;
+        existing.gridId = dto.gridId ?? null;
+        existing.gridCols = dto.gridCols ?? 1;
+        const updated = await exerciseRepo.save(existing);
+
+        const existingItems = await itemRepo.find({ where: { exercise: { id: existing.id } } });
+        const existingMap = new Map(existingItems.map((item) => [item.id, item]));
+        const incomingIds = new Set<number>();
+
+        for (const itemDto of dto.questions) {
+          if (itemDto.id && existingMap.has(itemDto.id)) {
+            incomingIds.add(itemDto.id);
+            const item = existingMap.get(itemDto.id) as TextQuestionItem;
+            item.question = itemDto.question;
+            item.answer = itemDto.answer;
+            await itemRepo.save(item);
+          } else {
+            const item = itemRepo.create({ ...itemDto, exercise: updated });
+            delete item.id;
+            await itemRepo.save(item);
+          }
+        }
+
+        const itemIdsToDelete = existingItems
+          .filter((item) => !incomingIds.has(item.id))
+          .map((item) => item.id);
+
+        if (itemIdsToDelete.length > 0) {
+          await itemRepo.delete(itemIdsToDelete);
+        }
+
+        return updated;
+      });
+    }
+
+    // Create
+    return this.textQuestionRepository.manager.transaction(async (manager) => {
+      const exerciseRepo = manager.getRepository(TextQuestionExercise);
+      const itemRepo = manager.getRepository(TextQuestionItem);
+
+      const dtoa = { ...dto } as any;
+      delete dtoa.id;
+      delete dtoa.questions;
+
+      const exercise = await exerciseRepo.save(
+        exerciseRepo.create(dtoa),
+      ) as unknown as TextQuestionExercise;
+
+      for (const questionDto of dto.questions) {
+        const item = itemRepo.create({ ...questionDto, exercise });
+        delete item.id;
+        await itemRepo.save(item);
+      }
+
+      return exercise;
+    });
+  }
+
+  private async handleMultipleChoice(dto: CreateMultipleChoiceDto) {
+    if (!Array.isArray(dto.questions)) {
+      throw new Error('multipleChoice.questions must be an array');
+    }
+
+    // Delete
+    if (dto.delete) {
+      await this.multipleChoiceRepository.manager.transaction(async (manager) => {
+        const questionRepo = manager.getRepository(MultipleChoiceQuestion);
+        const exerciseRepo = manager.getRepository(MultipleChoiceExercise);
+        await questionRepo.delete({ exercise: { id: dto.id } });
+        await exerciseRepo.delete({ id: dto.id });
+      });
+      return null;
+    }
+
+    // Update
+    if (dto.id > 0) {
+      return this.multipleChoiceRepository.manager.transaction(async (manager) => {
+        const exerciseRepo = manager.getRepository(MultipleChoiceExercise);
+        const questionRepo = manager.getRepository(MultipleChoiceQuestion);
+
+        const existing = await exerciseRepo.findOneBy({ id: dto.id });
+        if (!existing) return null;
+
+        existing.style = dto.style;
+        existing.text = dto.text;
+        existing.order = dto.order;
+        existing.gridId = dto.gridId ?? null;
+        existing.gridCols = dto.gridCols ?? 1;
+        const updated = await exerciseRepo.save(existing);
+
+        const existingQuestions = await questionRepo.find({ where: { exercise: { id: existing.id } } });
+        const existingMap = new Map(existingQuestions.map((question) => [question.id, question]));
+        const incomingIds = new Set<number>();
+
+        for (const questionDto of dto.questions) {
+          if (questionDto.id && existingMap.has(questionDto.id)) {
+            incomingIds.add(questionDto.id);
+            const question = existingMap.get(questionDto.id) as MultipleChoiceQuestion;
+            question.question = questionDto.question;
+            question.options = questionDto.options;
+            question.correctOption = questionDto.correctOption;
+            await questionRepo.save(question);
+          } else {
+            const question = questionRepo.create({ ...questionDto, exercise: updated });
+            delete question.id;
+            await questionRepo.save(question);
+          }
+        }
+
+        const questionIdsToDelete = existingQuestions
+          .filter((question) => !incomingIds.has(question.id))
+          .map((question) => question.id);
+
+        if (questionIdsToDelete.length > 0) {
+          await questionRepo.delete(questionIdsToDelete);
+        }
+
+        return updated;
+      });
+    }
+
+    // Create
+    return this.multipleChoiceRepository.manager.transaction(async (manager) => {
+      const exerciseRepo = manager.getRepository(MultipleChoiceExercise);
+      const questionRepo = manager.getRepository(MultipleChoiceQuestion);
+
+      const dtoa = { ...dto } as any;
+      delete dtoa.id;
+      delete dtoa.questions;
+
+      const exercise = await exerciseRepo.save(
+        exerciseRepo.create(dtoa),
+      ) as unknown as MultipleChoiceExercise;
+
+      for (const questionDto of dto.questions) {
+        const question = questionRepo.create({ ...questionDto, exercise });
+        delete question.id;
+        await questionRepo.save(question);
+      }
+
+      return exercise;
+    });
   }
 }

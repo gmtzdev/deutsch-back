@@ -39,6 +39,10 @@ import { FillBlankExercise } from './elements/entities/fill-blank-exercise.entit
 import { FillBlankRow } from './elements/entities/fill-blank-row.entity';
 import { FillBlankTableExercise } from './elements/entities/fill-blank-table.entity';
 import { FillBlankTableRow } from './elements/entities/fill-blank-table-row.entity';
+import { TextQuestionExercise } from './elements/entities/text-question-exercise.entity';
+import { TextQuestionItem } from './elements/entities/text-question-item.entity';
+import { MultipleChoiceQuestion } from './elements/entities/multiple-choice-question.entity';
+import { MultipleChoiceExercise } from './elements/entities/multiple-choice-exercise.entity';
 
 @Module({
   imports: [
@@ -81,7 +85,11 @@ import { FillBlankTableRow } from './elements/entities/fill-blank-table-row.enti
         FillBlankExercise,
         FillBlankRow,
         FillBlankTableExercise,
-        FillBlankTableRow
+        FillBlankTableRow,
+        TextQuestionExercise,
+        TextQuestionItem,
+        MultipleChoiceExercise,
+        MultipleChoiceQuestion,
       ],
       synchronize: true,
     }),
