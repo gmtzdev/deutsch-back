@@ -41,6 +41,8 @@ import { FillBlankTableExercise } from './elements/entities/fill-blank-table.ent
 import { FillBlankTableRow } from './elements/entities/fill-blank-table-row.entity';
 import { TextQuestionExercise } from './elements/entities/text-question-exercise.entity';
 import { TextQuestionItem } from './elements/entities/text-question-item.entity';
+import { MultipleChoiceQuestion } from './elements/entities/multiple-choice-question.entity';
+import { MultipleChoiceExercise } from './elements/entities/multiple-choice-exercise.entity';
 
 @Module({
   imports: [
@@ -86,6 +88,8 @@ import { TextQuestionItem } from './elements/entities/text-question-item.entity'
         FillBlankTableRow,
         TextQuestionExercise,
         TextQuestionItem,
+        MultipleChoiceExercise,
+        MultipleChoiceQuestion,
       ],
       synchronize: true,
     }),
