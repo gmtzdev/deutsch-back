@@ -46,12 +46,28 @@ export class AdminController {
         return this.adminService.findAll();
     }
 
+    @Get('pending-verification')
+    @ApiOperation({ summary: 'Obtener usuarios que aún no estan verificados' })
+    @ApiOperation({ summary: 'Listar usuarios pendientes de verificación' })
+    @ApiResponse({ status: 200, description: 'Lista de usuarios pendientes de verificación.', type: [User] })
+    findPendingVerification() {
+        return this.adminService.findPendingVerification();
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Obtener un usuario por ID' })
     @ApiResponse({ status: 200, description: 'Datos del usuario.', type: User })
     @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
     findOne(@Param('id', ParseIntPipe) id: number) {
         return this.adminService.findOne(id);
+    }
+
+    @Patch(':id/verify')
+    @ApiOperation({ summary: 'Verificar un usuario' })
+    @ApiResponse({ status: 200, description: 'Usuario verificado.', type: User })
+    @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+    verify(@Param('id', ParseIntPipe) id: number) {
+        return this.adminService.verify(id);
     }
 
     @Patch(':id')

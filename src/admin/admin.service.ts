@@ -38,6 +38,25 @@ export class AdminService {
         return user;
     }
 
+    async verify(userId: number): Promise<boolean> {
+        return this.userRepository.manager.transaction(async (manager) => {
+            const userRepo = manager.getRepository(User);
+            const user = await userRepo.findOneBy({ id: userId });
+            if (!user) return false;
+
+            user.verified = true;
+            await userRepo.save(user);
+            return true;
+        });
+    }
+
+    async findPendingVerification(): Promise<User[]> {
+        return this.userRepository.find({
+            where: { verified: false },
+            select: ['id', 'email', 'name', 'role', 'createdAt', 'updatedAt'],
+        });
+    }
+
     async update(id: number, dto: UpdateUserDto): Promise<User> {
         const user = await this.userRepository.findOne({ where: { id } });
         if (!user) throw new NotFoundException(`Usuario con id ${id} no encontrado`);
