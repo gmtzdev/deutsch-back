@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../auth/entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserRole } from 'src/auth/enum/user-rol.enum';
 
 @Injectable()
 export class AdminService {
@@ -27,6 +28,23 @@ export class AdminService {
 
     findAll(): Promise<User[]> {
         return this.userRepository.find({ select: ['id', 'email', 'name', 'role', 'createdAt', 'updatedAt'] });
+    }
+
+    getStats(): Promise<{ students: number, teachers: number }> {
+        return this.userRepository.createQueryBuilder('user')
+            .select('user.role', 'role')
+            .addSelect('COUNT(*)', 'count')
+            .groupBy('user.role')
+            .getRawMany()
+            .then(results => {
+                const stats = { students: 0, teachers: 0 };
+                results.forEach(r => {
+                    if (r.role === UserRole.STUDENT) stats.students = parseInt(r.count, 10);
+                    else if (r.role === UserRole.USER) stats.teachers = parseInt(r.count, 10);
+                });
+                return stats;
+            }
+            );
     }
 
     async findOne(id: number): Promise<User> {
