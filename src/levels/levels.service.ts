@@ -22,6 +22,10 @@ export class LevelsService {
     return this.levelRepository.find({ relations: ['topics'] });
   }
 
+  findVisibles() {
+    return this.levelRepository.find({ where: { visible: true }, relations: ['topics'] });
+  }
+
   findAllWithoutTopics() {
     return this.levelRepository.find();
   }
