@@ -25,6 +25,9 @@ export class Subtopic {
     @Column({ default: 0 })
     order: number;
 
+    @Column({ default: true })
+    visible: boolean;
+
     @ManyToOne(() => Topic, (topic) => topic.subtopics, { nullable: true, onDelete: 'CASCADE' })
     topic: Topic;
 
