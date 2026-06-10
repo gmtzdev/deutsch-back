@@ -17,13 +17,17 @@ export class UpdateSubtopicDto {
     @IsString()
     path?: string;
 
+    @ApiProperty({ example: true })
+    @IsNotEmpty({ message: 'Die Sichtbarkeit darf nicht leer sein' })
+    visible?: boolean;
+
     @ApiProperty({
         type: Topic,
         example: {
             id: 1,
         }
     })
-    @IsObject({ message: 'Das Level muss ein Objekt sein' })
-    @IsNotEmpty({ message: 'Die Level ID darf nicht leer sein' })
+    @IsObject({ message: 'Das Topic muss ein Objekt sein' })
+    @IsNotEmpty({ message: 'Die Topic ID darf nicht leer sein' })
     topic: Topic;
 }
