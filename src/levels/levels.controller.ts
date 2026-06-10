@@ -22,6 +22,11 @@ export class LevelsController {
     return this.levelsService.findVisibles();
   }
 
+  @Get('all/:id')
+  findOneAll(@Param('id') id: string) {
+    return this.levelsService.findOneAll(+id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.levelsService.findOne(+id);
