@@ -5,7 +5,7 @@ import { UpdateLevelDto } from './dto/update-level.dto';
 
 @Controller('levels')
 export class LevelsController {
-  constructor(private readonly levelsService: LevelsService) {}
+  constructor(private readonly levelsService: LevelsService) { }
 
   @Post()
   create(@Body() createLevelDto: CreateLevelDto) {
@@ -15,6 +15,16 @@ export class LevelsController {
   @Get()
   findAll() {
     return this.levelsService.findAll();
+  }
+
+  @Get('visibles')
+  findVisibles() {
+    return this.levelsService.findVisibles();
+  }
+
+  @Get('all/:id')
+  findOneAll(@Param('id') id: string) {
+    return this.levelsService.findOneAll(+id);
   }
 
   @Get(':id')

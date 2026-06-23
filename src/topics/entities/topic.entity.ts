@@ -19,6 +19,9 @@ export class Topic {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @Column({ default: true })
+    visible: boolean;
+
     @DeleteDateColumn()
     deletedAt: Date;
 

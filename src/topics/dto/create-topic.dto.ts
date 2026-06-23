@@ -13,6 +13,10 @@ export class CreateTopicDto {
     @IsNotEmpty({ message: 'Der Untertitel darf nicht leer sein' })
     subtitle: string;
 
+    @ApiProperty({ example: true })
+    @IsNotEmpty({ message: 'Die Sichtbarkeit darf nicht leer sein' })
+    visible?: boolean;
+
     @IsObject({ message: 'Das Level muss ein Objekt sein' })
     @IsNotEmpty({ message: 'Die Level ID darf nicht leer sein' })
     @ApiProperty({

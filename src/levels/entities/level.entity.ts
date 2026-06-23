@@ -21,6 +21,9 @@ export class Level {
     @Column({ default: 0 })
     lessonNumber: number;
 
+    @Column({ default: true })
+    visible: boolean;
+
     @Column({ nullable: true })
     color: string;
 

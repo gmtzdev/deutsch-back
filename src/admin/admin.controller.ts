@@ -46,6 +46,15 @@ export class AdminController {
         return this.adminService.findAll();
     }
 
+    @Get('stats')
+    @ApiOperation({ summary: 'Obtener estadísticas de usuarios' })
+    @ApiResponse({ status: 200, description: 'Estadísticas de usuarios.' })
+    @ApiResponse({ status: 401, description: 'No autenticado.' })
+    @ApiResponse({ status: 403, description: 'Sin permisos de administrador.' })
+    getStats() {
+        return this.adminService.getStats();
+    }
+
     @Get('pending-verification')
     @ApiOperation({ summary: 'Obtener usuarios que aún no estan verificados' })
     @ApiOperation({ summary: 'Listar usuarios pendientes de verificación' })

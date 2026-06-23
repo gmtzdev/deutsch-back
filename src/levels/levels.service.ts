@@ -22,11 +22,27 @@ export class LevelsService {
     return this.levelRepository.find({ relations: ['topics'] });
   }
 
+  findVisibles() {
+    return this.levelRepository.find({ where: { visible: true }, relations: ['topics'] });
+  }
+
   findAllWithoutTopics() {
     return this.levelRepository.find();
   }
 
   findOne(id: number) {
+    return this.levelRepository.createQueryBuilder('level')
+      .leftJoinAndSelect('level.topics', 'topic')
+      .leftJoinAndSelect('topic.subtopics', 'subtopic')
+      .where('level.id = :id', { id })
+      .andWhere('topic.visible = true')
+      .andWhere('subtopic.visible = true')
+      .orderBy('topic.id', 'ASC')
+      .addOrderBy('subtopic.order', 'ASC')
+      .getOne();
+  }
+
+  findOneAll(id: number) {
     return this.levelRepository.createQueryBuilder('level')
       .leftJoinAndSelect('level.topics', 'topic')
       .leftJoinAndSelect('topic.subtopics', 'subtopic')
