@@ -19,7 +19,7 @@ export class AdminService {
         if (exists) throw new ConflictException('El email ya está registrado');
 
         const hashedPassword = await bcrypt.hash(dto.password, 10);
-        const user = this.userRepository.create({ ...dto, password: hashedPassword });
+        const user = this.userRepository.create({ ...dto, password: hashedPassword, verified: true });
         const saved = await this.userRepository.save(user);
 
         const { password, ...result } = saved;
