@@ -179,13 +179,18 @@ export class ElementsService {
       case 'tag':
         return this.tagRepository.find({ where: { lesson: { id: lessonId } } });
       case 'table':
-        return this.tableRepository.find({
+        const tables = await this.tableRepository.find({
           where: { lesson: { id: lessonId } }, relations: ['rows'], order: {
             rows: {
               id: 'ASC'  // o cualquier campo de TableRow
             }
           }
         });
+        tables[0].rows.forEach(row => {
+          row.cells = JSON.parse(row.cells);
+        });
+        return tables;
+
       case 'conjugation':
         return this.conjugationRepository.find({ where: { lesson: { id: lessonId } }, relations: ['verbs', 'verbs.rows'] });
       case 'quiz':
@@ -435,26 +440,47 @@ export class ElementsService {
 
     // If the table has an ID, we are updating an existing table
     if (tableDto.id > 0) {
-      const existingTable = await this.tableRepository.findOneBy({ id: tableDto.id });
-      if (!existingTable) return null;
-      existingTable.style = tableDto.style;
-      existingTable.baseStyle = tableDto.baseStyle;
-      existingTable.headers = tableDto.headers;
-      existingTable.order = tableDto.order;
-      existingTable.gridId = tableDto.gridId ?? null;
-      existingTable.gridCols = tableDto.gridCols ?? 1;
-      const updatedTable = await this.tableRepository.save(existingTable);
+      return this.tableRepository.manager.transaction(async (manager) => {
+        const tableRepo = manager.getRepository(Table);
+        const rowRepo = manager.getRepository(TableRow);
 
-      // Replace all rows
-      await this.tableRowRepository.delete({ table: { id: existingTable.id } });
-      for (const rowDto of tableDto.rows) {
-        const newRow = this.tableRowRepository.create(rowDto);
-        newRow.table = updatedTable;
-        delete newRow.id;
-        await this.tableRowRepository.save(newRow);
-      }
+        const existingTable = await tableRepo.findOneBy({ id: tableDto.id });
+        if (!existingTable) return null;
+        existingTable.style = tableDto.style;
+        existingTable.baseStyle = tableDto.baseStyle;
+        existingTable.headers = tableDto.headers;
+        existingTable.order = tableDto.order;
+        existingTable.gridId = tableDto.gridId ?? null;
+        existingTable.gridCols = tableDto.gridCols ?? 1;
+        const updatedTable = await tableRepo.save(existingTable);
 
-      return updatedTable;
+        const existingRows = await rowRepo.find({ where: { table: { id: existingTable.id } } });
+        const existingMap = new Map(existingRows.map((row) => [row.id, row]));
+        const incomingIds = new Set<number>();
+
+        for (const rowDto of tableDto.rows) {
+          if (rowDto.id && existingMap.has(rowDto.id)) {
+            incomingIds.add(rowDto.id);
+            const row = existingMap.get(rowDto.id) as TableRow;
+            row.cells = JSON.stringify(rowDto.cells);
+            await rowRepo.save(row);
+          } else {
+            const newRow = rowRepo.create({ cells: JSON.stringify(rowDto.cells), table: updatedTable });
+            delete newRow.id;
+            await rowRepo.save(newRow);
+          }
+        }
+
+        const rowIdsToDelete = existingRows
+          .filter((row) => !incomingIds.has(row.id))
+          .map((row) => row.id);
+
+        if (rowIdsToDelete.length > 0) {
+          await rowRepo.delete(rowIdsToDelete);
+        }
+
+        return updatedTable;
+      });
     }
 
     // Creating a new table
@@ -467,7 +493,7 @@ export class ElementsService {
     ) as unknown as Table;
 
     for (const rowDto of tableDto.rows) {
-      const row = { cells: rowDto.cells };
+      const row = { cells: JSON.stringify(rowDto.cells) } as TableRow;
       const newRow = this.tableRowRepository.create(row);
       newRow.table = table;
       await this.tableRowRepository.save(newRow);

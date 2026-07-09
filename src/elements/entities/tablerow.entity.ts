@@ -6,8 +6,8 @@ export class TableRow {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column("simple-array", { nullable: true })
-    cells: string[];
+    @Column({ nullable: true })
+    cells: string;
 
     @ManyToOne(() => Table, (table) => table.rows, { onDelete: 'CASCADE' })
     table: Table;
