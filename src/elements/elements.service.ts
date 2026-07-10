@@ -186,9 +186,11 @@ export class ElementsService {
             }
           }
         });
-        tables[0].rows.forEach(row => {
-          row.cells = JSON.parse(row.cells);
-        });
+        if (tables.length > 0) {
+          tables[0].rows.forEach(row => {
+            row.cells = JSON.parse(row.cells);
+          });
+        }
         return tables;
 
       case 'conjugation':
