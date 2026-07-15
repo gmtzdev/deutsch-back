@@ -187,8 +187,10 @@ export class ElementsService {
           }
         });
         if (tables.length > 0) {
-          tables[0].rows.forEach(row => {
-            row.cells = JSON.parse(row.cells);
+          tables.forEach(table => {
+            table.rows.forEach(row => {
+              row.cells = JSON.parse(row.cells);
+            });
           });
         }
         return tables;
