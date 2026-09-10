@@ -30,8 +30,9 @@ export class LevelsService {
     return this.levelRepository.find();
   }
 
-  findOne(id: number) {
-    return this.levelRepository.createQueryBuilder('level')
+  async findOne(id: number) {
+    let level;
+    level = await this.levelRepository.createQueryBuilder('level')
       .leftJoinAndSelect('level.topics', 'topic')
       .leftJoinAndSelect('topic.subtopics', 'subtopic')
       .where('level.id = :id', { id })
@@ -40,6 +41,10 @@ export class LevelsService {
       .orderBy('topic.id', 'ASC')
       .addOrderBy('subtopic.order', 'ASC')
       .getOne();
+    if (!level) {
+      level = await this.levelRepository.findOne({ where: { id } });
+    }
+    return level;
   }
 
   findOneAll(id: number) {
