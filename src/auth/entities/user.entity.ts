@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToMany } from 'typeorm';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '../enum/user-rol.enum';
+import { Group } from '../../groups/entities/group.entity';
 
 
 
@@ -34,4 +35,7 @@ export class User {
 
     @Column({ nullable: true })
     verified: boolean;
+
+    @ManyToMany(() => Group, (group) => group.users)
+    groups: Group[];
 }

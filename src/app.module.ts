@@ -43,6 +43,8 @@ import { TextQuestionExercise } from './elements/entities/text-question-exercise
 import { TextQuestionItem } from './elements/entities/text-question-item.entity';
 import { MultipleChoiceQuestion } from './elements/entities/multiple-choice-question.entity';
 import { MultipleChoiceExercise } from './elements/entities/multiple-choice-exercise.entity';
+import { GroupsModule } from './groups/groups.module';
+import { Group } from './groups/entities/group.entity';
 
 @Module({
   imports: [
@@ -81,6 +83,7 @@ import { MultipleChoiceExercise } from './elements/entities/multiple-choice-exer
         PronunciationItem,
         AlphabetBlock,
         User,
+        Group,
         Tip,
         FillBlankExercise,
         FillBlankRow,
@@ -102,6 +105,7 @@ import { MultipleChoiceExercise } from './elements/entities/multiple-choice-exer
     AuthModule,
     AdminModule,
     AiModule,
+    GroupsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
