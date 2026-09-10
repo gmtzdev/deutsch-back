@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Level } from "../../levels/entities/level.entity";
-import { IsNotEmpty, IsObject, IsString } from "class-validator";
+import { IsNotEmpty, IsObject, IsOptional, IsString } from "class-validator";
 
 export class CreateTopicDto {
     @ApiProperty({ example: 'Thema 1' })
@@ -9,8 +9,8 @@ export class CreateTopicDto {
     title: string;
 
     @ApiProperty({ example: 'Hallo ich heiße…' })
+    @IsOptional()
     @IsString({ message: 'Der Untertitel muss ein String sein' })
-    @IsNotEmpty({ message: 'Der Untertitel darf nicht leer sein' })
     subtitle: string;
 
     @ApiProperty({ example: true })

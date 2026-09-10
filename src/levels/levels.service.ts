@@ -37,12 +37,16 @@ export class LevelsService {
       .leftJoinAndSelect('topic.subtopics', 'subtopic')
       .where('level.id = :id', { id })
       .andWhere('topic.visible = true')
-      .andWhere('subtopic.visible = true')
+      .andWhere('(subtopic.visible = true OR subtopic.id IS NULL)')
       .orderBy('topic.id', 'ASC')
       .addOrderBy('subtopic.order', 'ASC')
       .getOne();
+
     if (!level) {
       level = await this.levelRepository.findOne({ where: { id } });
+      if (level) {
+        level = await this.levelRepository.findOne({ where: { id }, relations: ['topics'] });
+      }
     }
     return level;
   }
