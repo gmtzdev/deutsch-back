@@ -17,6 +17,10 @@ export class Group {
     @Column()
     description: string;
 
+    @ApiProperty({ example: true, required: false, default: true })
+    @Column({ default: true })
+    visible: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

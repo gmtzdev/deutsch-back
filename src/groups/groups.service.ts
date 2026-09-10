@@ -105,4 +105,8 @@ export class GroupsService {
     await this.groupRepository.save(group);
     return this.findOne(id);
   }
+
+  async count(): Promise<number> {
+    return this.groupRepository.count({ where: { visible: true } });
+  }
 }

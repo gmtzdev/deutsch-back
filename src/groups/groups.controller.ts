@@ -17,6 +17,11 @@ export class GroupsController {
     return this.groupsService.findAll();
   }
 
+  @Get('count')
+  count() {
+    return this.groupsService.count();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.groupsService.findOne(+id);
