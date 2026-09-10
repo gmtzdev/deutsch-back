@@ -93,7 +93,11 @@ export class GroupsService {
 
   async addLevels(id: number, levelIds: number[]): Promise<Group> {
     const group = await this.findOne(id);
+    console.log(levelIds);
     const levels = await this.levelRepository.findByIds(levelIds);
+    if (!levels.length) {
+      return this.findOne(id);
+    }
     group.levels = [...(group.levels || []), ...levels.filter((level) => !group.levels.some((groupLevel) => groupLevel.id === level.id))];
     await this.groupRepository.save(group);
     return this.findOne(id);

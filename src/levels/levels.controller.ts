@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { LevelsService } from './levels.service';
 import { CreateLevelDto } from './dto/create-level.dto';
 import { UpdateLevelDto } from './dto/update-level.dto';
+import { Query } from '@nestjs/common';
 
 @Controller('levels')
 export class LevelsController {
@@ -18,8 +19,8 @@ export class LevelsController {
   }
 
   @Get('visibles')
-  findVisibles() {
-    return this.levelsService.findVisibles();
+  findVisibles(@Query('userId') userId?: string) {
+    return this.levelsService.findVisibles(userId);
   }
 
   @Get('all/:id')

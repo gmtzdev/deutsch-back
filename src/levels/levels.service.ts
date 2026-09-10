@@ -4,12 +4,14 @@ import { UpdateLevelDto } from './dto/update-level.dto';
 import { Repository } from 'typeorm';
 import { Level } from './entities/level.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class LevelsService {
   constructor(
     @InjectRepository(Level)
     private readonly levelRepository: Repository<Level>,
+    private readonly userService: AuthService
   ) { }
 
   create(createLevelDto: CreateLevelDto) {
@@ -22,8 +24,29 @@ export class LevelsService {
     return this.levelRepository.find({ relations: ['topics'] });
   }
 
-  findVisibles() {
-    return this.levelRepository.find({ where: { visible: true }, relations: ['topics'] });
+  async findVisibles(userId?: string) {
+    // return this.levelRepository.find({ where: { visible: true }, relations: ['topics'] });
+    if (!userId) {
+      return this.levelRepository.find({
+        where: { visible: true },
+        relations: ['topics'],
+      });
+    }
+
+    const user = await this.userService.getUserById(+userId);
+    if (user && user.role === 'admin') {
+      return this.levelRepository.find({ where: { visible: true }, relations: ['topics'] });
+    }
+
+    return this.levelRepository
+      .createQueryBuilder('level')
+      .leftJoinAndSelect('level.topics', 'topic')
+      .leftJoin('level.groups', 'group')
+      .leftJoin('group.users', 'user')
+      .where('level.visible = :visible', { visible: true })
+      .andWhere('user.id = :userId', { userId })
+      .orderBy('level.id', 'ASC')
+      .getMany();
   }
 
   findAllWithoutTopics() {

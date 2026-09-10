@@ -86,4 +86,8 @@ export class AuthService {
             access_token: this.jwtService.sign(payload),
         };
     }
+
+    public getUserById(id: number): Promise<User | null> {
+        return this.userRepository.findOne({ where: { id } });
+    }
 }

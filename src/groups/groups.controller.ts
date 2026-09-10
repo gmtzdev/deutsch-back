@@ -64,8 +64,9 @@ export class GroupsController {
   //   return this.groupsService.removeUser(+id, +userId);
   // }
 
-  @Post(':id/levels')
+  @Patch(':id/levels')
   addLevels(@Param('id') id: string, @Body('levelIds') levelIds: number[]) {
+    console.log('Adding levels:', levelIds);
     return this.groupsService.addLevels(+id, levelIds);
   }
 
@@ -73,4 +74,5 @@ export class GroupsController {
   removeLevel(@Param('id') id: string, @Param('levelId') levelId: string) {
     return this.groupsService.removeLevel(+id, +levelId);
   }
+
 }
